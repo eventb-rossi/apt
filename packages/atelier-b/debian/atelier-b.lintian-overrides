@@ -1,0 +1,18 @@
+# Atelier B is repackaged from the upstream CLEARSY vendor package. Its
+# executables, bundled libraries and documentation assets are third-party
+# prebuilt artifacts shipped unmodified, so the following tags are expected.
+
+# Third-party freeware is installed under /opt, exactly as the vendor ships it.
+atelier-b: dir-or-file-in-opt
+
+# Prebuilt vendor executables and shared objects.
+atelier-b: unstripped-binary-or-object
+atelier-b: embedded-library
+
+# JavaScript and CSS assets bundled inside the upstream HTML documentation.
+atelier-b: privacy-breach-uses-embedded-file
+
+# press/bdb is intentionally world-writable: the backend tools (bbatch) write
+# their runtime database there, exactly as the upstream vendor package ships it.
+# Without this, Atelier B crashes with a SIGSEGV in the BBatch process.
+atelier-b: non-standard-dir-perm 0777 != 0755 [opt/atelierb-free-*/press/bdb/]

@@ -1,0 +1,32 @@
+Source: atelier-b
+Section: math
+Priority: optional
+Maintainer: Denis Efremov <efremov@linux.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://www.atelierb.eu/
+Rules-Requires-Root: no
+
+Package: atelier-b
+Architecture: amd64
+Depends: libc6 (>= 2.38),
+         libgcc-s1 (>= 3.0),
+         libgmp10 (>= 2:6.3.0+dfsg),
+         libicu74 (>= 74.1-1~),
+         libqt5core5t64 (>= 5.15.1),
+         libqt5gui5t64 (>= 5.14.1) | libqt5gui5-gles (>= 5.14.1),
+         libqt5network5t64 (>= 5.0.2),
+         libqt5printsupport5t64 (>= 5.0.2),
+         libqt5svg5 (>= 5.6.0~beta),
+         libqt5widgets5t64 (>= 5.15.1),
+         libqt5xml5t64 (>= 5.0.2),
+         libqt5xmlpatterns5 (>= 5.0.2),
+         libstdc++6 (>= 13.1),
+         ${misc:Depends}
+Description: IDE for the B method and Event-B
+ Atelier B is an integrated development environment for the B method. It
+ supports writing B and Event-B models, type-checking, proof obligation
+ generation, and automatic and interactive provers.
+ .
+ This package repackages the Atelier B Community Edition, proprietary freeware
+ distributed by CLEARSY, from the upstream vendor package for Ubuntu.

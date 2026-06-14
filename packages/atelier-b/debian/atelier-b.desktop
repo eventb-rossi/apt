@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Atelier B
+GenericName=B method IDE
+Comment=IDE for the B method and Event-B
+Exec=atelier-b %f
+Icon=atelier-b
+Terminal=false
+Categories=Development;IDE;
+StartupNotify=true

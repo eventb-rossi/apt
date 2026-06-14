@@ -1,0 +1,5 @@
+#!/bin/sh
+# Launcher for Atelier B. The binary resolves its bundled libraries via RUNPATH
+# ($ORIGIN/../lib), so exec it in place. The versioned directory is matched by
+# glob so the launcher keeps working across vendor version bumps.
+exec /opt/atelierb-free-*/bin/AtelierB "$@"

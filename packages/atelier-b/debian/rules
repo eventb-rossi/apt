@@ -1,0 +1,41 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+# Prebuilt vendor distribution: only repackage it.
+override_dh_auto_build:
+
+override_dh_auto_test:
+
+override_dh_auto_install:
+	mkdir -p debian/atelier-b
+	cp -a opt debian/atelier-b/opt
+	install -D -m0755 debian/atelier-b.wrapper debian/atelier-b/usr/bin/atelier-b
+	install -D -m0644 opt/atelierb-free-*/share/icons/AtelierB128.png \
+	    debian/atelier-b/usr/share/pixmaps/atelier-b.png
+	install -D -m0644 debian/atelier-b.desktop \
+	    debian/atelier-b/usr/share/applications/atelier-b.desktop
+
+# Preserve the vendor tree's permissions verbatim: dh_fixperms would strip the
+# executable bit from the /opt binaries and normalise the world-writable
+# press/bdb runtime database directory that the backend tools (bbatch) write to,
+# which makes Atelier B crash with a SIGSEGV in the BBatch process. Excluding
+# /opt keeps the perms cp -a copied from the vendor package; only the files we
+# add under /usr are normalised.
+override_dh_fixperms:
+	dh_fixperms -X opt
+	# press/bdb is a shared runtime database directory the backend tools (bbatch)
+	# write to; the vendor ships it world-writable and it must stay that way, or
+	# Atelier B crashes with a SIGSEGV in the BBatch process. Set it explicitly
+	# because the world-writable bit does not survive the orig-tarball round-trip.
+	chmod 0777 debian/atelier-b/opt/atelierb-free-*/press/bdb
+
+# Do not strip / compute library dependencies from the prebuilt binaries; the
+# runtime dependencies are taken from the upstream vendor package.
+override_dh_strip:
+
+override_dh_dwz:
+
+override_dh_shlibdeps:
+
+override_dh_makeshlibs:
