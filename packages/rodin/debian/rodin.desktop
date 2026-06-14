@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Rodin Platform
+GenericName=Event-B IDE
+Comment=Develop and prove Event-B models
+Exec=rodin %f
+Icon=rodin
+Terminal=false
+Categories=Development;IDE;
+StartupNotify=true

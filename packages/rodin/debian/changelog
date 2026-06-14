@@ -1,0 +1,5 @@
+rodin (3.9-1) noble; urgency=medium
+
+  * Initial Ubuntu/Debian packaging of the Rodin platform.
+
+ -- Denis Efremov <efremov@linux.com>  Sun, 14 Jun 2026 12:00:00 +0000

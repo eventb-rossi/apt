@@ -1,0 +1,24 @@
+Source: rodin
+Section: math
+Priority: optional
+Maintainer: Denis Efremov <efremov@linux.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://www.event-b.org/
+Rules-Requires-Root: no
+
+Package: rodin
+Architecture: amd64
+Depends: default-jre | java-runtime,
+         libgtk-3-0t64 | libgtk-3-0,
+         hicolor-icon-theme,
+         ${misc:Depends}
+Recommends: libwebkit2gtk-4.1-0
+Description: Eclipse-based IDE for Event-B
+ The Rodin platform is an Eclipse-based integrated development environment for
+ Event-B. It supports refinement, mathematical proof, type-checking and the
+ generation and discharge of proof obligations, and is extensible through a wide
+ range of plug-ins.
+ .
+ This package bundles the upstream Eclipse RCP distribution. A Java runtime is
+ required; webkit2gtk is recommended for the browser-backed views.
