@@ -1,0 +1,20 @@
+Source: eventb-animate
+Section: math
+Priority: optional
+Maintainer: Denis Efremov <efremov@linux.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/eventb-rossi/eventb-animate
+Rules-Requires-Root: no
+
+Package: eventb-animate
+Architecture: all
+Depends: default-jre-headless | java-runtime-headless, ${misc:Depends}
+Description: animate Event-B models with ProB
+ eventb-animate animates Event-B models (.bum/.buc files, zip archives or Rodin
+ project directories) using ProB, without a Rodin installation. It supports
+ random animation, invariant checking, coverage, JSON trace save/replay, model
+ visualisation and Event-B to classical B conversion.
+ .
+ The animator is a self-contained Java archive that bundles the ProB kernel and
+ downloads the matching probcli on first use.
