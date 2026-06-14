@@ -1,0 +1,3 @@
+#!/bin/sh
+# Launcher for the ProB command-line interface.
+exec /usr/lib/prob/probcli "$@"

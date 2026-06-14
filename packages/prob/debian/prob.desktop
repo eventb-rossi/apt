@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=ProB
+GenericName=Animator and model checker
+Comment=Animate, constraint-solve and model-check B, Event-B, CSP-M, TLA+ and Z
+Exec=prob %f
+Icon=prob
+Terminal=false
+Categories=Science;Math;
+StartupNotify=true

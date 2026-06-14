@@ -1,0 +1,3 @@
+#!/bin/sh
+# Launcher for the ProB Tcl/Tk user interface.
+exec /usr/lib/prob/StartProB.sh "$@"

@@ -1,0 +1,29 @@
+Source: prob
+Section: math
+Priority: optional
+Maintainer: Denis Efremov <efremov@linux.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://prob.hhu.de/
+Rules-Requires-Root: no
+
+Package: prob
+Architecture: amd64
+Depends: default-jre-headless | java-runtime-headless,
+         libc6,
+         libgcc-s1,
+         libstdc++6,
+         tk8.6,
+         libtcl8.6,
+         libgmp10,
+         libuuid1,
+         hicolor-icon-theme,
+         ${misc:Depends}
+Recommends: graphviz
+Description: animator, constraint solver and model checker for B
+ ProB is an animator, constraint solver and model checker for the B method. It
+ also supports Event-B, CSP-M, TLA+ and Z, and can be used to systematically
+ check a specification for a range of errors.
+ .
+ This package bundles the upstream SICStus Prolog based distribution and
+ provides the Tcl/Tk user interface (prob) and the command-line tool (probcli).

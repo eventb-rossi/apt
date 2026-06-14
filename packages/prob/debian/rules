@@ -1,0 +1,41 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+# Prebuilt third-party distribution: only repackage it.
+override_dh_auto_build:
+
+override_dh_auto_test:
+
+override_dh_auto_install:
+	mkdir -p debian/prob/usr/lib/prob
+	tar --exclude=./debian --exclude=./.pc -cf - . \
+	    | tar -C debian/prob/usr/lib/prob -xf -
+	install -D -m0755 debian/prob.wrapper debian/prob/usr/bin/prob
+	install -D -m0755 debian/probcli.wrapper debian/prob/usr/bin/probcli
+	install -D -m0644 tcl/icons/prob.xpm debian/prob/usr/share/pixmaps/prob.xpm
+	install -D -m0644 debian/prob.desktop \
+	    debian/prob/usr/share/applications/prob.desktop
+
+# Normalize permissions of the prebuilt tree deterministically: drop the
+# execute bit from every file, then restore it only for ELF executables and
+# shell scripts (shared objects and data files stay 0644). This both fixes the
+# stray +x bits some upstream data files carry and restores the bit dh_fixperms
+# clears from the real executables.
+override_dh_fixperms:
+	dh_fixperms
+	find debian/prob/usr/lib/prob -type f -exec chmod 0644 {} +
+	find debian/prob/usr/lib/prob -type f | while read -r f; do \
+	    if head -c2 "$$f" 2>/dev/null | grep -q '#!'; then chmod 0755 "$$f"; continue; fi; \
+	    case "$$(file -b "$$f")" in *ELF*executable*) chmod 0755 "$$f";; esac; \
+	done
+
+# Do not strip, regenerate debug info for, or compute library dependencies from
+# the prebuilt binaries; the runtime dependencies are declared manually.
+override_dh_strip:
+
+override_dh_dwz:
+
+override_dh_shlibdeps:
+
+override_dh_makeshlibs:

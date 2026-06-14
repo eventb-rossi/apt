@@ -1,0 +1,23 @@
+# ProB is repackaged from the upstream prebuilt distribution (SICStus Prolog
+# runtime plus native extension modules and helper tools). These binaries are
+# third-party prebuilt artifacts that must be shipped unmodified, so the
+# following tags are expected and intentional.
+
+# Native executables and SICStus extension modules are shipped as built upstream.
+prob: unstripped-binary-or-object
+prob: missing-dependency-on-libc
+prob: embedded-library
+
+# RUNPATH baked in by the upstream build of the bundled ZeroMQ library.
+prob: custom-library-search-path
+
+# Prebuilt upstream binary; not built as a position-independent executable.
+prob: hardening-no-pie
+
+# Bundled Java helpers live next to the application under /usr/lib/prob, not in
+# /usr/share/java, and are shipped exactly as built upstream.
+prob: jar-not-in-usr-share
+prob: jar-contains-source
+
+# Example specification shipped verbatim from upstream.
+prob: national-encoding
