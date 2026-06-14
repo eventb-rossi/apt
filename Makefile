@@ -13,7 +13,9 @@ SHELL := /bin/bash
 PKGS := eventb-to-txt evbt eventb-checker eventb-animate tlc4b b2program \
         prob2-ui prob rodin rodin-rc atelier-b
 
-.PHONY: all build-all source-all repo lint clean list $(addprefix build-,$(PKGS)) $(addprefix source-,$(PKGS))
+# Note: per-package targets (build-%, source-%) are intentionally NOT listed as
+# .PHONY -- GNU make skips pattern-rule matching for phony targets.
+.PHONY: all build-all source-all repo lint clean list
 
 all: build-all
 

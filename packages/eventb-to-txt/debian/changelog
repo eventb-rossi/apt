@@ -1,0 +1,5 @@
+eventb-to-txt (1.7-1) noble; urgency=medium
+
+  * Initial Ubuntu/Debian packaging of eventb-to-txt.
+
+ -- Denis Efremov <efremov@linux.com>  Sun, 14 Jun 2026 12:00:00 +0000
