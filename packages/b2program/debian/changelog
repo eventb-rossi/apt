@@ -1,0 +1,5 @@
+b2program (0.1.0~git20260512-1) noble; urgency=medium
+
+  * Initial Ubuntu/Debian packaging of B2Program (pinned upstream commit).
+
+ -- Denis Efremov <efremov@linux.com>  Sun, 14 Jun 2026 12:00:00 +0000

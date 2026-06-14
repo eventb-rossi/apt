@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+# The fat jar is built in get-orig.sh and vendored into the orig tarball, so the
+# package build itself only installs it.
+override_dh_auto_build:
+
+override_dh_auto_test:
+
+override_dh_auto_install:
+	install -D -m0644 b2program.jar \
+	    debian/b2program/usr/share/java/b2program/b2program.jar
+	install -D -m0755 debian/b2program.sh debian/b2program/usr/bin/b2program

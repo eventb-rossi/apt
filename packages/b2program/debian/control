@@ -1,0 +1,19 @@
+Source: b2program
+Section: math
+Priority: optional
+Maintainer: Denis Efremov <efremov@linux.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/favu100/b2program
+Rules-Requires-Root: no
+
+Package: b2program
+Architecture: all
+Depends: default-jre-headless | java-runtime-headless, ${misc:Depends}
+Description: high-level code generator for formal B machines
+ B2Program generates source code from high-level formal B machines. It can emit
+ Java, C++, Python, Rust and TypeScript, allowing executable artefacts to be
+ derived from verified B models.
+ .
+ This package installs the B2Program fat jar built from a pinned upstream commit
+ together with a "b2program" launcher.
