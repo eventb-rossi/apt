@@ -1,0 +1,20 @@
+# Build artifacts and downloaded sources (never committed)
+/build/
+/repo/
+/downloads/
+
+# Debian build output
+*.deb
+*.ddeb
+*.udeb
+*.orig.tar.*
+*.debian.tar.*
+*.dsc
+*.buildinfo
+*.changes
+*.build
+*.upload
+
+# Misc
+__pycache__/
+*.pyc

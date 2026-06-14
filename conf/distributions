@@ -1,0 +1,8 @@
+Origin: eventb-rossi
+Label: Event-B Ubuntu registry
+Suite: noble
+Codename: noble
+Version: 24.04
+Architectures: amd64 source
+Components: main
+Description: Event-B / B-method tools for Ubuntu (noble)

@@ -1,0 +1,13 @@
+# Keep the GitHub Actions used by the workflows up to date.
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # Bundle all action bumps into a single PR instead of one per action.
+    groups:
+      github-actions:
+        patterns:
+          - "*"

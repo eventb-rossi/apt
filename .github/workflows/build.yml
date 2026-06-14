@@ -1,0 +1,87 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install build toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            dpkg-dev debhelper devscripts fakeroot lintian dh-python \
+            python3-all python3-setuptools build-essential reprepro gnupg \
+            desktop-file-utils unzip cpio wget curl ca-certificates xz-utils \
+            default-jdk openjdk-25-jre-headless
+
+      - name: Build all packages
+        run: make build-all
+
+      - name: Lint
+        run: make lint
+
+      - name: Upload .deb artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: debs
+          path: build/*.deb
+
+  publish:
+    # Publish the APT repository to GitHub Pages from main.
+    # Requires repository secret REPO_GPG_PRIVATE_KEY (ASCII-armored) and
+    # variable REPO_GPG_KEY (key id/email) to sign the repo.
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            dpkg-dev debhelper devscripts fakeroot lintian dh-python \
+            python3-all python3-setuptools build-essential reprepro gnupg \
+            desktop-file-utils unzip cpio wget curl ca-certificates xz-utils \
+            default-jdk openjdk-25-jre-headless
+
+      - name: Import signing key
+        env:
+          REPO_GPG_PRIVATE_KEY: ${{ secrets.REPO_GPG_PRIVATE_KEY }}
+        run: |
+          if [ -n "$REPO_GPG_PRIVATE_KEY" ]; then
+            echo "$REPO_GPG_PRIVATE_KEY" | gpg --batch --import
+          else
+            echo "REPO_GPG_PRIVATE_KEY not set; the repository will be unsigned."
+          fi
+
+      - name: Build packages and assemble repository
+        env:
+          REPO_GPG_KEY: ${{ vars.REPO_GPG_KEY }}
+        run: |
+          make build-all
+          make repo
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: repo
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v5
