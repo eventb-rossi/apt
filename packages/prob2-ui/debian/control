@@ -1,0 +1,26 @@
+Source: prob2-ui
+Section: math
+Priority: optional
+Maintainer: Denis Efremov <efremov@linux.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://prob.hhu.de/
+Rules-Requires-Root: no
+
+Package: prob2-ui
+Architecture: all
+Depends: default-jre | java-runtime,
+         libgtk-3-0t64 | libgtk-3-0,
+         libxtst6,
+         libgl1,
+         libxxf86vm1,
+         hicolor-icon-theme,
+         ${misc:Depends}
+Description: ProB2 JavaFX animator and model checker
+ ProB2-UI is the modern JavaFX user interface for the ProB animator, constraint
+ solver and model checker. It supports B, Event-B, CSP-M, TLA+ and Z with
+ interactive animation, model checking, LTL/CTL, trace recording and replay and
+ visualisation.
+ .
+ The application is distributed as a self-contained multi-platform jar that
+ bundles the JavaFX runtime and downloads the matching ProB kernel on first use.

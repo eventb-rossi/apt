@@ -1,0 +1,17 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+# Prebuilt multi-platform jar: nothing to compile or test here.
+override_dh_auto_build:
+
+override_dh_auto_test:
+
+override_dh_auto_install:
+	install -D -m0644 prob2-ui.jar \
+	    debian/prob2-ui/usr/share/java/prob2-ui/prob2-ui.jar
+	install -D -m0755 debian/prob2-ui.sh debian/prob2-ui/usr/bin/prob2-ui
+	install -D -m0644 prob2-ui.png \
+	    debian/prob2-ui/usr/share/icons/hicolor/256x256/apps/prob2-ui.png
+	install -D -m0644 debian/prob2-ui.desktop \
+	    debian/prob2-ui/usr/share/applications/prob2-ui.desktop

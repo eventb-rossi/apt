@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=ProB2-UI
+GenericName=Formal methods animator and model checker
+Comment=Animate and model-check B, Event-B, CSP-M, TLA+ and Z models
+Exec=prob2-ui %f
+Icon=prob2-ui
+Terminal=false
+Categories=Science;Math;
+StartupNotify=true
