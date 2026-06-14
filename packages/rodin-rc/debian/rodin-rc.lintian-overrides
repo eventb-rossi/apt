@@ -1,0 +1,40 @@
+# Rodin is repackaged from the upstream Eclipse RCP distribution. The bundled
+# Eclipse plugins, the native launcher and the JNA native libraries (shipped for
+# many operating systems and architectures) are third-party prebuilt artifacts
+# that must be shipped unmodified, so the following tags are expected.
+
+# Prebuilt native launcher, Eclipse SWT/GTK libraries and JNA dispatch libraries.
+rodin-rc: unstripped-binary-or-object
+rodin-rc: missing-dependency-on-libc
+rodin-rc: shared-library-lacks-stack-section
+rodin-rc: shared-library-lacks-prerequisites
+rodin-rc: hardening-no-pie
+rodin-rc: hardening-no-relro
+rodin-rc: custom-library-search-path
+
+# JNA bundles native dispatch libraries for many foreign architectures.
+rodin-rc: binary-from-other-architecture
+
+# Eclipse bundles compiled Java classes inside its OSGi plugins.
+rodin-rc: package-installs-java-bytecode
+rodin-rc: codeless-jar
+
+# Helper script shipped inside an upstream Eclipse plugin.
+rodin-rc: unusual-interpreter
+
+# Bundled JNA ships static libraries built for foreign platforms (e.g. AIX) that
+# lintian's ar cannot read.
+rodin-rc: unpack-message-for-deb-data
+
+# Helper script shipped inside an upstream Eclipse plugin.
+rodin-rc: script-uses-unversioned-python-in-shebang
+
+# Eclipse plugins are OSGi bundles living under /usr/lib/rodin, not in
+# /usr/share/java, and are shipped exactly as built upstream.
+rodin-rc: jar-not-in-usr-share
+rodin-rc: jar-contains-source
+rodin-rc: embedded-library
+
+# License files and text shipped inside upstream Eclipse plugins.
+rodin-rc: extra-license-file
+rodin-rc: national-encoding

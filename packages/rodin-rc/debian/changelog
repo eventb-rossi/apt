@@ -1,0 +1,5 @@
+rodin-rc (3.10.0~rc2-1) noble; urgency=medium
+
+  * Initial Ubuntu/Debian packaging of the Rodin platform 3.10 RC2.
+
+ -- Denis Efremov <efremov@linux.com>  Sun, 14 Jun 2026 12:00:00 +0000
