@@ -1,0 +1,14 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+# Prebuilt jar: nothing to compile or test at package-build time.
+override_dh_auto_build:
+
+override_dh_auto_test:
+
+override_dh_auto_install:
+	install -D -m0644 eventb-checker.jar \
+	    debian/eventb-checker/usr/share/java/eventb-checker/eventb-checker.jar
+	install -D -m0755 debian/eventb-checker.sh \
+	    debian/eventb-checker/usr/bin/eventb-checker

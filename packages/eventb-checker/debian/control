@@ -1,0 +1,19 @@
+Source: eventb-checker
+Section: math
+Priority: optional
+Maintainer: Denis Efremov <efremov@linux.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/eventb-rossi/eventb-checker
+Rules-Requires-Root: no
+
+Package: eventb-checker
+Architecture: all
+Depends: default-jre-headless | java-runtime-headless, ${misc:Depends}
+Description: standalone type checker for Event-B models
+ eventb-checker validates Event-B models (.bum/.buc/.eventb files or zip
+ archives exported from Rodin) and reports type-checking errors without a Rodin
+ installation.
+ .
+ It is distributed as a self-contained Java archive and is convenient for use in
+ continuous integration and command-line workflows.
