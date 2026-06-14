@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+# Prebuilt jar: nothing to compile or test at package-build time.
+override_dh_auto_build:
+
+override_dh_auto_test:
+
+override_dh_auto_install:
+	install -D -m0644 evbt.jar debian/evbt/usr/share/java/evbt/evbt.jar
+	install -D -m0755 debian/evbt.sh debian/evbt/usr/bin/evbt

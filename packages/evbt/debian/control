@@ -1,0 +1,18 @@
+Source: evbt
+Section: math
+Priority: optional
+Maintainer: Denis Efremov <efremov@linux.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/viklauverk/EventBTool
+Rules-Requires-Root: no
+
+Package: evbt
+Architecture: all
+Depends: openjdk-25-jre-headless, ${misc:Depends}
+Description: EventBTool - code generation and documentation for Event-B
+ EventBTool (evbt) produces source code and documentation from Event-B models.
+ It is a command-line application distributed as a self-contained Java archive.
+ .
+ The jar targets a recent Java release; this package pulls in a suitable
+ headless JRE and provides the "evbt" launcher.
