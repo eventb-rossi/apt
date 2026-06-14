@@ -1,0 +1,19 @@
+Source: tlc4b
+Section: math
+Priority: optional
+Maintainer: Denis Efremov <efremov@linux.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/hhu-stups/tlc4b
+Rules-Requires-Root: no
+
+Package: tlc4b
+Architecture: all
+Depends: default-jre-headless | java-runtime-headless, ${misc:Depends}
+Description: model-check classical B specifications with TLA+/TLC
+ TLC4B translates a classical B specification to TLA+, runs the TLC model
+ checker on the result, and translates any counterexample found back to the B
+ level so it can be inspected in terms of the original model.
+ .
+ This package installs the TLC4B jar together with its runtime dependencies and
+ a "tlc4b" launcher.
