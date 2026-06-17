@@ -1,4 +1,10 @@
 #!/bin/sh
 # Launcher for the Rodin platform. The Eclipse native launcher resolves its
 # installation directory from /proc/self/exe, so exec it in place.
+#
+# Force a light GTK theme. The e4 CSS theme pinned in rodin.ini only styles
+# Eclipse-drawn widgets; native SWT/GTK widgets (trees, editor area, menus)
+# follow the desktop GTK theme, which on a dark desktop (e.g. Yaru-dark) leaves
+# the UI partly or fully dark. GTK_THEME overrides that for this process only.
+export GTK_THEME=Adwaita:light
 exec /usr/lib/rodin/rodin "$@"

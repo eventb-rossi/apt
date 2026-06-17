@@ -11,6 +11,12 @@ override_dh_auto_install:
 	mkdir -p debian/rodin/usr/lib/rodin
 	tar --exclude=./debian --exclude=./.pc -cf - . \
 	    | tar -C debian/rodin/usr/lib/rodin -xf -
+	# Pin the Eclipse e4 CSS theme to the light default so the UI is not
+	# rendered in a broken mixed light/dark theme on dark desktops.
+	test -f debian/rodin/usr/lib/rodin/rodin.ini
+	grep -q 'org.eclipse.e4.ui.css.swt.theme' debian/rodin/usr/lib/rodin/rodin.ini || \
+	    printf '%s\n' '-Dorg.eclipse.e4.ui.css.swt.theme=org.eclipse.e4.ui.css.theme.e4_default' \
+	        >> debian/rodin/usr/lib/rodin/rodin.ini
 	install -D -m0755 debian/rodin.wrapper debian/rodin/usr/bin/rodin
 	install -D -m0644 icon.xpm debian/rodin/usr/share/pixmaps/rodin.xpm
 	install -D -m0644 debian/rodin.desktop \

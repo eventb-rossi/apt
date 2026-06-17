@@ -1,5 +1,9 @@
 rodin (3.9-1) noble; urgency=medium
 
   * Initial Ubuntu/Debian packaging of the Rodin platform.
+  * Force the Eclipse light theme via rodin.ini to avoid a broken mixed
+    light/dark UI on dark desktops.
+  * Force a light GTK theme (GTK_THEME=Adwaita:light) in the launcher so the
+    native SWT/GTK widgets are light too, not just the Eclipse-drawn ones.
 
  -- Denis Efremov <efremov@linux.com>  Sun, 14 Jun 2026 12:00:00 +0000
