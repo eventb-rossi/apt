@@ -14,12 +14,44 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v6
+        with:
+          # Full history so changed-packages.sh can diff against the base.
+          fetch-depth: 0
 
       - name: Install build toolchain
         run: ./scripts/ci-install-deps.sh
 
-      - name: Build all packages
-        run: make build-all
+      # Cache the assembled orig tarballs: with them present, build-deb.sh skips
+      # get-orig.sh entirely for unchanged packages (no upstream downloads, no
+      # b2program Gradle build).  Rolling cache -- the key changes when
+      # packaging/version/get-orig change, and restore-keys brings back the most
+      # recent blob to build on top of.
+      - name: Cache orig tarballs
+        uses: actions/cache@v5
+        with:
+          path: build/*.orig.tar.gz
+          key: orig-v1-${{ hashFiles('packages/*/debian/changelog', 'packages/*/get-orig.sh', 'scripts/lib.sh') }}
+          restore-keys: |
+            orig-v1-
+
+      # Cache raw upstream artifacts; fetch() skips anything already present.
+      - name: Cache upstream downloads
+        uses: actions/cache@v5
+        with:
+          path: downloads
+          key: downloads-v1-${{ hashFiles('packages/*/get-orig.sh', 'scripts/lib.sh') }}
+          restore-keys: |
+            downloads-v1-
+
+      # Build only what changed on pull requests (fast feedback); build the full
+      # set on pushes so the uploaded artifact -- and therefore the published
+      # repo -- is always complete.  Diff against the PR base SHA (guaranteed
+      # present with fetch-depth: 0) rather than a remote-tracking ref.
+      - name: Build packages
+        env:
+          EVENT_TYPE: ${{ github.event_name }}
+          RANGE: ${{ github.event_name == 'pull_request' && format('{0}...HEAD', github.event.pull_request.base.sha) || format('{0}..{1}', github.event.before, github.sha) }}
+        run: scripts/ci-build.sh
 
       - name: Lint
         run: make lint
@@ -29,6 +61,7 @@ jobs:
         with:
           name: debs
           path: build/*.deb
+          if-no-files-found: ignore
 
   publish:
     # Publish the APT repository to GitHub Pages from main.
@@ -46,8 +79,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Install toolchain
-        run: ./scripts/ci-install-deps.sh
+      # Publishing only assembles + signs the repo from prebuilt .deb files, so
+      # install just reprepro + gnupg instead of the full build toolchain.
+      - name: Install repo tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends reprepro gnupg
 
       - name: Import signing key
         env:
@@ -59,12 +96,18 @@ jobs:
             echo "REPO_GPG_PRIVATE_KEY not set; the repository will be unsigned."
           fi
 
-      - name: Build packages and assemble repository
+      # Reuse the .deb files the build job already produced (it builds the full
+      # set on pushes) instead of building everything a second time.
+      - name: Download built packages
+        uses: actions/download-artifact@v7
+        with:
+          name: debs
+          path: build
+
+      - name: Assemble repository
         env:
           REPO_GPG_KEY: ${{ vars.REPO_GPG_KEY }}
-        run: |
-          make build-all
-          make repo
+        run: make repo
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
