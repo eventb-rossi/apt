@@ -1,60 +1,164 @@
 name: version-check
 
+# Daily upstream version monitor. Mirrors gentoo-overlay's version-check and
+# homebrew-tap's release tracker:
+#   * "bump" packages (get-orig.sh URL is ${UVER}-derived) -> open a PR that
+#     prepends a new debian/changelog stanza. The build workflow runs on the
+#     PR and validates the new upstream actually downloads and builds.
+#   * "track" packages (opaque build id / dated vendor path) -> open/refresh a
+#     per-package tracking issue.
+# Detection and the changelog rewrite live in scripts/version-check.py.
+
 on:
   schedule:
-    - cron: "37 6 * * *"   # daily
+    - cron: "37 6 * * *"   # daily, 06:37 UTC
   workflow_dispatch:
 
+concurrency:
+  group: version-check
+  cancel-in-progress: false
+
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
   issues: write
 
 jobs:
-  check:
+  detect:
     runs-on: ubuntu-24.04
+    outputs:
+      bump_matrix: ${{ steps.scan.outputs.bump_matrix }}
+      tracks: ${{ steps.scan.outputs.tracks }}
     steps:
       - uses: actions/checkout@v6
-
-      - name: Install dpkg-dev
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends dpkg-dev
-
-      - name: Check upstream versions
-        id: check
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Scan upstreams
+        id: scan
         env:
           GITHUB_TOKEN: ${{ github.token }}   # lifts the GitHub API rate limit
         run: |
-          set +e
-          out="$(scripts/version-check.py)"
-          code=$?
-          echo "$out"
-          {
-            echo "report<<EOF"
-            echo "$out"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-          echo "behind=$code" >> "$GITHUB_OUTPUT"
-          exit 0
+          set -euo pipefail
+          report=$(python3 scripts/version-check.py check)
+          echo "$report" | jq .
+          echo "bump_matrix=$(jq -c '[.[] | select(.mode=="bump" and .outdated) | .pkg]' <<<"$report")" >> "$GITHUB_OUTPUT"
+          echo "tracks=$(jq -c '[.[] | select(.mode=="track" and .outdated) | {pkg, current, latest}]' <<<"$report")" >> "$GITHUB_OUTPUT"
+          # Surface detection failures (network/parse) without failing the run.
+          jq -r '.[] | select(.error != null) | "⚠️ \(.pkg): \(.error)"' <<<"$report" >> "$GITHUB_STEP_SUMMARY" || true
 
-      - name: Open issue when packages are behind
-        if: steps.check.outputs.behind != '0'
-        uses: actions/github-script@v9
+  # One PR per outdated bumpable package.
+  bump:
+    needs: detect
+    if: needs.detect.outputs.bump_matrix != '[]'
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg: ${{ fromJSON(needs.detect.outputs.bump_matrix) }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
-          script: |
-            const body = "Automated upstream version check found packages behind:\n\n```\n"
-              + `${{ steps.check.outputs.report }}` + "\n```";
-            const title = "Upstream version updates available";
-            const existing = await github.rest.issues.listForRepo({
-              owner: context.repo.owner, repo: context.repo.repo,
-              state: "open", labels: "version-check",
-            });
-            if (existing.data.length) {
-              await github.rest.issues.update({
-                owner: context.repo.owner, repo: context.repo.repo,
-                issue_number: existing.data[0].number, body,
-              });
-            } else {
-              await github.rest.issues.create({
-                owner: context.repo.owner, repo: context.repo.repo,
-                title, body, labels: ["version-check"],
-              });
-            }
+          python-version: '3.12'
+      - name: Bump ${{ matrix.pkg }}
+        id: bump
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/version-check.py bump '${{ matrix.pkg }}'
+      - name: Open pull request
+        if: steps.bump.outputs.bumped == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          # A PAT lets the bump PR trigger the build workflow (the default
+          # github.token cannot). Uses the org secret VERSION_BUMP_TOKEN (Contents +
+          # Pull requests: write), shared across the eventb-rossi packaging repos;
+          # falls back to github.token (PR still opens, just doesn't re-trigger CI).
+          token: ${{ secrets.VERSION_BUMP_TOKEN || github.token }}
+          branch: version-bump/${{ steps.bump.outputs.pn }}-${{ steps.bump.outputs.new }}
+          delete-branch: true
+          title: '${{ matrix.pkg }}: ${{ steps.bump.outputs.old }} → ${{ steps.bump.outputs.new }}'
+          commit-message: |
+            ${{ matrix.pkg }}: update to ${{ steps.bump.outputs.new }}
+
+            Automated version bump by the version-check workflow.
+          labels: version-bump
+          body: |
+            Automated version bump detected by the daily `version-check` workflow.
+
+            | | Version |
+            |---|---|
+            | Packaged | `${{ steps.bump.outputs.old }}` |
+            | Upstream | `${{ steps.bump.outputs.new }}` |
+
+            A new `debian/changelog` stanza was prepended. `get-orig.sh` derives
+            its download URL from the changelog version, so nothing else changes —
+            the build workflow on this PR fetches the new upstream and builds it.
+
+            Review checklist:
+            - [ ] Build passes (the upstream `${{ steps.bump.outputs.new }}` artifact downloads and packages)
+            - [ ] `lintian` is clean
+            - [ ] `debian/changelog` entry reads correctly
+
+  # One tracking issue per outdated package that can't be auto-bumped.
+  track:
+    needs: detect
+    if: needs.detect.outputs.tracks != '[]'
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TRACKS: ${{ needs.detect.outputs.tracks }}
+    steps:
+      - name: File / refresh tracking issues
+        run: |
+          set -euo pipefail
+          gh label create version-bump --repo "$GITHUB_REPOSITORY" \
+            --color FBCA04 --description "Upstream release detected by version-check" 2>/dev/null || true
+
+          existing="$(gh issue list --repo "$GITHUB_REPOSITORY" --label version-bump \
+            --state open --json number,title --limit 200)"
+
+          # Loop in the parent shell (process substitution, not a pipe) and treat
+          # every gh call as best-effort, so one package's API failure doesn't
+          # abort the batch under `set -e` and leave the rest untracked.
+          while IFS=$'\t' read -r pn current latest; do
+            title="${pn}: ${current} → ${latest}"
+
+            if jq -e --arg t "$title" 'any(.[]; .title == $t)' <<<"$existing" >/dev/null; then
+              echo "Already tracked: $title"
+              continue
+            fi
+
+            body="$(cat <<EOF
+          A newer upstream release of **\`${pn}\`** was detected.
+
+          | | Version |
+          |---|---|
+          | Packaged | \`${current}\` |
+          | Upstream | \`${latest}\` |
+
+          This package isn't auto-bumped (opaque build id or a dated vendor path
+          that the version number can't reconstruct), so it needs a manual bump:
+
+          - [ ] Update the build id / dated path in \`packages/${pn}/get-orig.sh\`
+          - [ ] Add a new stanza to \`packages/${pn}/debian/changelog\`
+          - [ ] \`make build-${pn}\` succeeds and \`make lint\` is clean
+
+          _Opened automatically by the daily version-check workflow._
+          EOF
+          )"
+
+            echo "Filing issue: $title"
+            if ! new_url="$(gh issue create --repo "$GITHUB_REPOSITORY" \
+              --title "$title" --label version-bump --body "$body")"; then
+              echo "::warning::failed to file tracking issue for ${pn}"
+              continue
+            fi
+            new_num="${new_url##*/}"
+
+            # Supersede older open issues for the same package (best-effort).
+            while read -r num; do
+              gh issue close "$num" --repo "$GITHUB_REPOSITORY" \
+                --comment "Superseded by #${new_num} (${title})." || true
+            done < <(jq -r --arg p "${pn}: " '.[] | select(.title | startswith($p)) | .number' <<<"$existing")
+          done < <(jq -r '.[] | [.pkg, .current, .latest] | @tsv' <<<"$TRACKS")
