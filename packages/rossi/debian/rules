@@ -1,0 +1,36 @@
+#!/usr/bin/make -f
+# rossi is built from source with Cargo.  All crates are vendored into the orig
+# tarball by get-orig.sh, so the build runs fully offline.  The Rust toolchain
+# is provided out-of-band (rustup), like b2program's JDK, hence the minimal
+# Build-Depends.
+
+export CARGO_HOME = $(CURDIR)/debian/cargo-home
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	cargo build --release --frozen -p rossi-cli -p eventb-lsp
+
+override_dh_auto_test:
+	target/release/rossi --version
+	target/release/eventb-language-server --version
+
+override_dh_auto_install:
+	install -D -m0755 target/release/rossi \
+	    debian/rossi/usr/bin/rossi
+	install -D -m0755 target/release/eventb-language-server \
+	    debian/rossi/usr/bin/eventb-language-server
+
+override_dh_auto_clean:
+	rm -rf target debian/cargo-home
+
+# dh_clean recursively deletes *.orig/*.rej/*.bak files; left to run over the
+# vendored crates it strips files (e.g. Cargo.toml.orig) that Cargo's
+# .cargo-checksum.json still references, breaking the offline build.  Keep it
+# away from vendor/.
+override_dh_clean:
+	dh_clean -Xvendor
+
+# Rust release binaries carry no separate debug info; dwz errors on them.
+override_dh_dwz:

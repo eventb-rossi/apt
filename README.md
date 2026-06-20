@@ -24,6 +24,7 @@ Built and tested on **Ubuntu 24.04 LTS (noble)**, `amd64`.
 | `rodin` | amd64 | Rodin Platform — Eclipse-based Event-B IDE |
 | `rodin-rc` | amd64 | Rodin Platform release candidate (conflicts with `rodin`) |
 | `atelier-b` | amd64 | Atelier B Community Edition (B method IDE) |
+| `rossi` | amd64 | Rust toolchain for Event-B (`rossi`, `eventb-language-server`) |
 
 ## Install from the APT repository
 
@@ -64,6 +65,10 @@ at build time.
 sudo apt install dpkg-dev debhelper devscripts fakeroot lintian dh-python \
   python3-all python3-setuptools build-essential reprepro gnupg \
   desktop-file-utils unzip cpio wget curl xz-utils default-jdk openjdk-25-jre-headless
+
+# rossi is built with Cargo and noble's apt rustc is too old, so install a
+# recent toolchain via rustup (https://rustup.rs); needed for build-rossi/build-all
+rustup default stable
 
 make build-eventb-to-txt     # build one package  -> build/*.deb
 make build-all               # build every package

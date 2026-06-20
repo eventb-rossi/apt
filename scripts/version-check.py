@@ -60,6 +60,8 @@ PACKAGES = [
      "source": {"type": "github", "repo": "eventb-rossi/eventb-checker"}},
     {"pkg": "eventb-animate", "mode": "bump",
      "source": {"type": "github", "repo": "eventb-rossi/eventb-animate"}},
+    {"pkg": "rossi", "mode": "bump",
+     "source": {"type": "github", "repo": "eventb-rossi/rossi"}},
     # get-orig.sh resolves the jar (and its dependency closure) from Maven
     # Central, so detect there too -- a GitHub tag without a published Maven
     # artifact would otherwise open a bump PR that can't build.

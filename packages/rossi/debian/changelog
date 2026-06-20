@@ -1,0 +1,5 @@
+rossi (0.1.0-1) noble; urgency=medium
+
+  * Initial Ubuntu/Debian packaging of Rossi (Rust toolchain for Event-B).
+
+ -- Denis Efremov <efremov@linux.com>  Sat, 20 Jun 2026 12:00:00 +0000

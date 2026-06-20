@@ -1,0 +1,20 @@
+Source: rossi
+Section: math
+Priority: optional
+Maintainer: Denis Efremov <efremov@linux.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/eventb-rossi/rossi
+Rules-Requires-Root: no
+
+Package: rossi
+Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Rust toolchain for Event-B (parser, checker, CLI, LSP)
+ Rossi is a Rust toolchain for Event-B providing a parser, a static checker, a
+ command-line interface, and a language server. It validates Event-B models,
+ converts between Event-B text and Rodin archives, reformats models, and powers
+ editor integration over the Language Server Protocol.
+ .
+ This package installs the "rossi" command-line tool and the
+ "eventb-language-server" LSP server, built from source with Cargo.
