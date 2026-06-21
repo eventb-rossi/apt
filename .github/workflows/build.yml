@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # Full history so changed-packages.sh can diff against the base.
           fetch-depth: 0
@@ -77,7 +77,7 @@ jobs:
     environment:
       name: github-pages
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # Publishing only assembles + signs the repo from prebuilt .deb files, so
       # install just reprepro + gnupg instead of the full build toolchain.
@@ -99,7 +99,7 @@ jobs:
       # Reuse the .deb files the build job already produced (it builds the full
       # set on pushes) instead of building everything a second time.
       - name: Download built packages
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: debs
           path: build
