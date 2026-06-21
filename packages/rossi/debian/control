@@ -2,7 +2,9 @@ Source: rossi
 Section: math
 Priority: optional
 Maintainer: Denis Efremov <efremov@linux.com>
-Build-Depends: debhelper-compat (= 13)
+Build-Depends: debhelper-compat (= 13),
+               cargo (>= 1.85),
+               rustc (>= 1.85)
 Standards-Version: 4.6.2
 Homepage: https://github.com/eventb-rossi/rossi
 Rules-Requires-Root: no

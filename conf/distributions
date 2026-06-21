@@ -6,3 +6,12 @@ Version: 24.04
 Architectures: amd64 source
 Components: main
 Description: Event-B / B-method tools for Ubuntu (noble)
+
+Origin: eventb-rossi
+Label: Event-B Ubuntu registry
+Suite: resolute
+Codename: resolute
+Version: 26.04
+Architectures: amd64 source
+Components: main
+Description: Event-B / B-method tools for Ubuntu (resolute); hosts rossi, which needs rustc >= 1.85

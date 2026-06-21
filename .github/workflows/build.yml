@@ -18,6 +18,18 @@ jobs:
           # Full history so changed-packages.sh can diff against the base.
           fetch-depth: 0
 
+      # Cache the sbuild chroots used to build cross-series packages (rossi ->
+      # resolute).  ci-install-deps.sh (re)creates a chroot only when its tarball
+      # is missing, so a restored cache skips the mmdebstrap bootstrap.  Keyed on
+      # the series list and the chroot builder, not package versions.
+      - name: Cache sbuild chroots
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/sbuild
+          key: sbuild-v1-${{ hashFiles('conf/distributions', 'scripts/make-chroot.sh') }}
+          restore-keys: |
+            sbuild-v1-
+
       - name: Install build toolchain
         run: ./scripts/ci-install-deps.sh
 

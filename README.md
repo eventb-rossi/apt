@@ -7,7 +7,10 @@ command-line tools. The same software is also packaged for
 Gentoo, and macOS (Homebrew); this repository is the Ubuntu/Debian counterpart and
 tracks the same versions.
 
-Built and tested on **Ubuntu 24.04 LTS (noble)**, `amd64`.
+Built and tested on **Ubuntu 24.04 LTS (noble)**, `amd64`. One exception:
+`rossi` needs `rustc >= 1.85` (Rust 2024 edition), which noble's archive does not
+provide, so it targets **Ubuntu 26.04 LTS (resolute)** and is published to a
+separate `resolute` suite.
 
 ## Packages
 
@@ -28,18 +31,22 @@ Built and tested on **Ubuntu 24.04 LTS (noble)**, `amd64`.
 
 ## Install from the APT repository
 
+Most packages are published for **noble (24.04)**; `rossi` is published for
+**resolute (26.04)**. The snippet below picks the suite matching your release.
+
 ```sh
 # 1. Trust the repository signing key
 curl -fsSL https://eventb-rossi.github.io/apt/KEY.gpg \
   | sudo gpg --dearmor -o /etc/apt/keyrings/eventb.gpg
 
-# 2. Add the repository
-echo "deb [signed-by=/etc/apt/keyrings/eventb.gpg] https://eventb-rossi.github.io/apt noble main" \
+# 2. Add the repository for your Ubuntu release (noble or resolute)
+. /etc/os-release
+echo "deb [signed-by=/etc/apt/keyrings/eventb.gpg] https://eventb-rossi.github.io/apt ${VERSION_CODENAME} main" \
   | sudo tee /etc/apt/sources.list.d/eventb.list
 
 # 3. Install what you need
 sudo apt update
-sudo apt install rodin prob prob2-ui
+sudo apt install rodin prob prob2-ui   # on resolute (26.04), rossi is also available
 ```
 
 > Replace the host (`https://eventb-rossi.github.io/apt`) with wherever you
@@ -66,9 +73,15 @@ sudo apt install dpkg-dev debhelper devscripts fakeroot lintian dh-python \
   python3-all python3-setuptools build-essential reprepro gnupg \
   desktop-file-utils unzip cpio wget curl xz-utils default-jdk openjdk-25-jre-headless
 
-# rossi is built with Cargo and noble's apt rustc is too old, so install a
-# recent toolchain via rustup (https://rustup.rs); needed for build-rossi/build-all
+# rossi targets resolute (26.04) for rustc >= 1.85, so it needs two extra
+# host-side tools beyond the list above:
+#  - a cargo >= 1.85 to vendor its Rust 2024 crates during orig assembly
+#    (install via rustup, https://rustup.rs):
 rustup default stable
+#  - sbuild + mmdebstrap + zstd to build it in a resolute chroot, created
+#    automatically on first build (the build uses that chroot's archive rustc,
+#    not rustup):
+sudo apt install sbuild mmdebstrap uidmap zstd
 
 make build-eventb-to-txt     # build one package  -> build/*.deb
 make build-all               # build every package
@@ -90,7 +103,9 @@ packages/<name>/
 
 ```sh
 make source-eventb-to-txt    # build/<pkg>_<ver>_source.changes
-# Append ~noble1 to the changelog revision per upload, then:
+make source-rossi            # rossi's source package targets the resolute series
+# Append the suffix matching the package's target series to the changelog
+# revision per upload (~noble1 for noble packages, ~resolute1 for rossi), then:
 dput ppa:<owner>/eventb build/<pkg>_<ver>_source.changes
 ```
 

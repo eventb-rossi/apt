@@ -1,8 +1,10 @@
 #!/usr/bin/make -f
 # rossi is built from source with Cargo.  All crates are vendored into the orig
-# tarball by get-orig.sh, so the build runs fully offline.  The Rust toolchain
-# is provided out-of-band (rustup), like b2program's JDK, hence the minimal
-# Build-Depends.
+# tarball by get-orig.sh, so the build itself runs fully offline (cargo
+# --frozen).  The Rust toolchain comes from the target series' archive (rustc and
+# cargo are in Build-Depends, installed by Launchpad / sbuild): rossi's MSRV is
+# 1.85 (Rust 2024 edition), first available in Ubuntu 25.10, so this package
+# targets 26.04 LTS (resolute), not noble.  Nothing in the build relies on rustup.
 
 export CARGO_HOME = $(CURDIR)/debian/cargo-home
 

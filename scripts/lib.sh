@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Shared helpers for the per-package get-orig.sh scripts.
+# Shared helpers for the packaging scripts.
 #
-# Every get-orig.sh runs under build-deb.sh with ROOT/PKG/UVER/ORIG/DOWNLOADS
-# exported and sources this file to reuse the common download and pack steps.
+# fetch/pack_orig are used by the per-package get-orig.sh scripts, which run
+# under build-deb.sh with ROOT/PKG/UVER/ORIG/DOWNLOADS exported.
+# changelog_distribution is shared by build-deb.sh and make-repo.sh.
 
 # fetch URL DEST -- download URL to DEST atomically, skipping if DEST already
 # exists.  Writing to DEST.part first and renaming on success means an
@@ -17,4 +18,11 @@ fetch() {
 pack_orig() {
     tar -C "$ROOT/build" --owner=root --group=root -czf "$ORIG" "${PKG}-${UVER}"
     rm -rf "$ROOT/build/${PKG}-${UVER}"
+}
+
+# changelog_distribution FILE -- the target series (the Distribution field) from
+# the top stanza of a debian/changelog, e.g. "noble".  Pure awk so it also works
+# in the publish job, which installs only reprepro+gnupg (no dpkg-dev).
+changelog_distribution() {
+    awk 'NR==1 { sub(/^[^(]*\([^)]*\)[[:space:]]*/, ""); sub(/[[:space:]]*;.*/, ""); print $1; exit }' "$1"
 }

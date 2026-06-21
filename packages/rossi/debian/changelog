@@ -1,4 +1,4 @@
-rossi (0.1.0-1) noble; urgency=medium
+rossi (0.1.0-1) resolute; urgency=medium
 
   * Initial Ubuntu/Debian packaging of Rossi (Rust toolchain for Event-B).
 
