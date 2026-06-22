@@ -1,3 +1,9 @@
+eventb-checker (1.7-1) noble; urgency=medium
+
+  * Update to upstream 1.7.
+
+ -- Denis Efremov <efremov@linux.com>  Mon, 22 Jun 2026 21:46:25 +0000
+
 eventb-checker (1.6-1) noble; urgency=medium
 
   * Initial Ubuntu/Debian packaging of eventb-checker.
