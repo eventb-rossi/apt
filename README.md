@@ -2,10 +2,7 @@
 
 Debian/Ubuntu packaging for the [Event-B](https://www.event-b.org/) and B-method
 tool ecosystem: the Rodin platform, ProB, Atelier B, and a set of supporting
-command-line tools. The same software is also packaged for
-[Fedora (COPR)](https://copr.fedorainfracloud.org/coprs/g/eventb-rossi/eventb-copr/),
-Gentoo, and macOS (Homebrew); this repository is the Ubuntu/Debian counterpart and
-tracks the same versions.
+command-line tools.
 
 Built and tested on **Ubuntu 24.04 LTS (noble)**, `amd64`. One exception:
 `rossi` needs `rustc >= 1.85` (Rust 2024 edition), which noble's archive does not
@@ -107,17 +104,6 @@ make source-rossi            # rossi's source package targets the resolute serie
 # Append the suffix matching the package's target series to the changelog
 # revision per upload (~noble1 for noble packages, ~resolute1 for rossi), then:
 dput ppa:<owner>/eventb build/<pkg>_<ver>_source.changes
-```
-
-## Layout
-
-```
-.
-├── packages/            one directory per package (debian/ + get-orig.sh)
-├── scripts/             build-deb.sh, make-repo.sh, version-check.py
-├── conf/distributions   reprepro repository definition
-├── Makefile             build / repo / lint orchestration
-└── .github/workflows/   build + daily upstream version check
 ```
 
 ## License
