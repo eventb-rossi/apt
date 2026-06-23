@@ -1,3 +1,9 @@
+rossi (0.1.1-1) resolute; urgency=medium
+
+  * Update to upstream 0.1.1.
+
+ -- Denis Efremov <efremov@linux.com>  Tue, 23 Jun 2026 21:01:24 +0000
+
 rossi (0.1.0-1) resolute; urgency=medium
 
   * Initial Ubuntu/Debian packaging of Rossi (Rust toolchain for Event-B).
