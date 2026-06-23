@@ -46,19 +46,6 @@ sudo apt update
 sudo apt install rodin prob prob2-ui   # on resolute (26.04), rossi is also available
 ```
 
-> Replace the host (`https://eventb-rossi.github.io/apt`) with wherever you
-> publish the generated `repo/` tree.
-
-## Install from a PPA
-
-Once the source packages are uploaded to a Launchpad PPA:
-
-```sh
-sudo add-apt-repository ppa:<owner>/eventb
-sudo apt update
-sudo apt install rodin prob prob2-ui
-```
-
 ## Building locally
 
 The repository ships only the Debian packaging; upstream artifacts are fetched
@@ -96,16 +83,6 @@ Each package lives under `packages/<name>/`:
 packages/<name>/
 ├── debian/        Debian packaging (control, rules, changelog, copyright, ...)
 └── get-orig.sh    fetches/assembles the upstream artifact for the build
-```
-
-### Source packages for a PPA
-
-```sh
-make source-eventb-to-txt    # build/<pkg>_<ver>_source.changes
-make source-rossi            # rossi's source package targets the resolute series
-# Append the suffix matching the package's target series to the changelog
-# revision per upload (~noble1 for noble packages, ~resolute1 for rossi), then:
-dput ppa:<owner>/eventb build/<pkg>_<ver>_source.changes
 ```
 
 ## License
