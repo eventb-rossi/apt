@@ -86,6 +86,8 @@ make lint                    # run lintian over build/*.deb
 
 # Assemble a signed APT repository under repo/
 REPO_GPG_KEY=you@example.com make repo
+# make repo refuses to run without REPO_GPG_KEY; pass REPO_ALLOW_UNSIGNED=1
+# to build an unsigned repo for local testing only.
 ```
 
 Each package lives under `packages/<name>/`:

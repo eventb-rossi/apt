@@ -77,8 +77,9 @@ jobs:
 
   publish:
     # Publish the APT repository to GitHub Pages from main.
-    # Requires repository secret REPO_GPG_PRIVATE_KEY (ASCII-armored) and
-    # variable REPO_GPG_KEY (key id/email) to sign the repo.
+    # Required: repository secret REPO_GPG_PRIVATE_KEY (ASCII-armored) and
+    # variable REPO_GPG_KEY (key id/email) to sign the repo.  The job fails
+    # rather than publish an unsigned (and therefore unusable) repository.
     needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-24.04
@@ -101,11 +102,16 @@ jobs:
       - name: Import signing key
         env:
           REPO_GPG_PRIVATE_KEY: ${{ secrets.REPO_GPG_PRIVATE_KEY }}
+          REPO_GPG_KEY: ${{ vars.REPO_GPG_KEY }}
         run: |
-          if [ -n "$REPO_GPG_PRIVATE_KEY" ]; then
-            echo "$REPO_GPG_PRIVATE_KEY" | gpg --batch --import
-          else
-            echo "REPO_GPG_PRIVATE_KEY not set; the repository will be unsigned."
+          if [ -z "$REPO_GPG_PRIVATE_KEY" ] || [ -z "$REPO_GPG_KEY" ]; then
+            echo "::error::Signing not configured. Set secret REPO_GPG_PRIVATE_KEY and variable REPO_GPG_KEY. Refusing to publish an unsigned repository."
+            exit 1
+          fi
+          echo "$REPO_GPG_PRIVATE_KEY" | gpg --batch --import
+          if ! gpg --list-secret-keys "$REPO_GPG_KEY" >/dev/null 2>&1; then
+            echo "::error::REPO_GPG_KEY ($REPO_GPG_KEY) does not match any imported secret key."
+            exit 1
           fi
 
       # Reuse the .deb files the build job already produced (it builds the full

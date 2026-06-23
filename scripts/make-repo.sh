@@ -5,9 +5,11 @@
 #
 # Signing:
 #   Set REPO_GPG_KEY to the key id/fingerprint/email of a secret key to sign
-#   the repository (recommended).  The matching public key is exported to
-#   repo/KEY.gpg for users to import.  If REPO_GPG_KEY is unset the repository
-#   is left unsigned (apt then needs "[trusted=yes]"); a warning is printed.
+#   the repository.  The matching public key is exported to repo/KEY.gpg for
+#   users to import.  Signing is REQUIRED by default: if REPO_GPG_KEY is unset
+#   this script errors out rather than produce an unusable (unsigned) repo.
+#   Pass REPO_ALLOW_UNSIGNED=1 to build an unsigned repo (apt then needs
+#   "[trusted=yes]") -- for local testing only.
 #
 set -euo pipefail
 
@@ -51,6 +53,12 @@ rm -rf "$REPO"
 mkdir -p "$REPO/conf"
 
 if [ -n "${REPO_GPG_KEY:-}" ]; then
+    # Fail early if the key isn't actually available to sign with (typo, or the
+    # private key was never imported) -- otherwise reprepro fails later, opaquely.
+    gpg --list-secret-keys "$REPO_GPG_KEY" >/dev/null 2>&1 || {
+        echo "ERROR: no secret key matching REPO_GPG_KEY=$REPO_GPG_KEY in the keyring." >&2
+        exit 1
+    }
     # SignWith is per-paragraph in reprepro, so add it to every distribution
     # stanza (each has exactly one Codename: line).  A single appended line would
     # sign only the last suite and leave the others (e.g. noble) unsigned.
@@ -60,10 +68,14 @@ if [ -n "${REPO_GPG_KEY:-}" ]; then
     ' "$ROOT/conf/distributions" > "$REPO/conf/distributions"
     gpg --armor --export "$REPO_GPG_KEY" > "$REPO/KEY.gpg"
     echo "exported public key to $REPO/KEY.gpg"
-else
+elif [ "${REPO_ALLOW_UNSIGNED:-0}" = 1 ]; then
     cp "$ROOT/conf/distributions" "$REPO/conf/distributions"
-    echo "WARNING: REPO_GPG_KEY not set -- building an UNSIGNED repository." >&2
+    echo "WARNING: REPO_GPG_KEY not set -- building an UNSIGNED repository (REPO_ALLOW_UNSIGNED=1)." >&2
     echo "         Users will need 'deb [trusted=yes] ...' to use it." >&2
+else
+    echo "ERROR: REPO_GPG_KEY not set -- refusing to build an unsigned repository." >&2
+    echo "       Set REPO_GPG_KEY to your signing key, or pass REPO_ALLOW_UNSIGNED=1 to override." >&2
+    exit 1
 fi
 
 for d in "${debs[@]}"; do
