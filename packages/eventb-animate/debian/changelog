@@ -1,3 +1,9 @@
+eventb-animate (5.1-1) noble; urgency=medium
+
+  * Update to upstream 5.1.
+
+ -- Denis Efremov <efremov@linux.com>  Thu, 25 Jun 2026 17:08:23 +0000
+
 eventb-animate (5.0-1) noble; urgency=medium
 
   * Initial Ubuntu/Debian packaging of eventb-animate.
