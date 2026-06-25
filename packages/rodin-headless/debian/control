@@ -1,0 +1,25 @@
+Source: rodin-headless
+Section: math
+Priority: optional
+Maintainer: Denis Efremov <efremov@linux.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/eventb-rossi/rodin-headless
+Rules-Requires-Root: no
+
+Package: rodin-headless
+Architecture: all
+Depends: ${misc:Depends}
+Description: headless toolchain to build, model-check, and prove Rodin Event-B models
+ rodin-headless drives the Rodin Platform from the command line to build,
+ model-check, and prove Event-B models without a graphical session. It takes
+ the .zip archives of Event-B projects, runs a full Rodin workspace build in
+ headless mode, and writes the static-checked artifacts back into the archives.
+ Beyond plain builds it can model-check and validate models with ProB and
+ automatically discharge proof obligations with Rodin.
+ .
+ It bundles no Rodin, ProB, or Java. Run "rodin-headless-install" once to fetch
+ the Rodin and ProB runtimes into your per-user data directory (native mode,
+ which needs a JDK 21+, Xvfb, GTK 3 and zip/unzip), or point the wrapper at a
+ Docker/Podman container image. Run "rodin-headless-install --check-deps" to
+ report anything that is missing.

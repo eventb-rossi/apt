@@ -1,0 +1,31 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+# Pure-shell toolchain; upstream `make all` only prints a notice.
+override_dh_auto_build:
+
+# Smoke test from the unpacked source tree (in-tree the wrapper finds its
+# library and VERSION beside itself; install-time sentinel rewriting is N/A here).
+# Capture the output instead of piping into grep so a non-zero wrapper exit is
+# not masked by grep's status, and require a non-empty VERSION so a blank/missing
+# one cannot let a bare "rodin-headless " prefix match pass vacuously.
+override_dh_auto_test:
+	set -e; \
+	v=$$(cat VERSION); \
+	test -n "$$v"; \
+	out=$$(./rodin-headless --version); \
+	test "$$out" = "rodin-headless $$v"
+
+# The upstream Makefile is FHS-clean (DESTDIR + GNU dir vars) and installs the
+# two CLI wrappers, the libexec engine/library, the docker build context, and
+# the man pages itself, rewriting path sentinels to the paths we pass here.
+# libexecdir is forced to /usr/lib so the engine lands in /usr/lib/rodin-headless,
+# matching this repo's convention (rodin, prob, rodin-rc all install under
+# /usr/lib/<pkg>); /usr/libexec only became Debian Policy-blessed in 4.7.0, after
+# the 4.6.2 these packages declare.
+override_dh_auto_install:
+	$(MAKE) install \
+	    DESTDIR=$(CURDIR)/debian/rodin-headless \
+	    prefix=/usr \
+	    libexecdir=/usr/lib

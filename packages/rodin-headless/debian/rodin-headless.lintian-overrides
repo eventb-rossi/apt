@@ -1,0 +1,14 @@
+# rodin-headless-lib.sh is a shell library that is sourced, never executed, so
+# upstream installs it non-executable; the shebang is only for editors/linters.
+rodin-headless: script-not-executable [usr/lib/rodin-headless/rodin-headless-lib.sh]
+
+# The Docker build context under /usr/share/rodin-headless is shipped as data:
+# rodin-headless uses it to build the container image locally. Those copies carry
+# shebangs but are intentionally non-executable; the runnable copies of the same
+# scripts live in /usr/lib/rodin-headless.
+rodin-headless: script-not-executable [usr/share/rodin-headless/entrypoint.sh]
+rodin-headless: script-not-executable [usr/share/rodin-headless/prob-version.sh]
+rodin-headless: script-not-executable [usr/share/rodin-headless/rodin-headless-install]
+rodin-headless: script-not-executable [usr/share/rodin-headless/rodin-headless-lib.sh]
+rodin-headless: script-not-executable [usr/share/rodin-headless/rodin-headless.sh]
+rodin-headless: script-not-executable [usr/share/rodin-headless/rodin-version.sh]

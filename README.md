@@ -23,6 +23,7 @@ separate `resolute` suite.
 | `prob` | amd64 | ProB animator, constraint solver, model checker (`prob`, `probcli`) |
 | `rodin` | amd64 | Rodin Platform — Eclipse-based Event-B IDE |
 | `rodin-rc` | amd64 | Rodin Platform release candidate (conflicts with `rodin`) |
+| `rodin-headless` | all | Headless CLI to build, check, and prove Rodin Event-B models |
 | `atelier-b` | amd64 | Atelier B Community Edition (B method IDE) |
 | `rossi` | amd64 | Rust toolchain for Event-B (`rossi`, `eventb-language-server`) |
 
