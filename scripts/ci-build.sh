@@ -21,18 +21,29 @@ all="$(make -s list)"
 changed="$(scripts/changed-packages.sh)"
 echo "Changed packages:"; echo "${changed:-  (none)}"
 
-# Invalidate cached orig tarballs only where the orig content can actually
-# differ: a changed get-orig.sh.  A version bump already changes the orig
-# filename (so it regenerates on its own), and debian/ edits are re-applied by
-# dpkg-buildpackage so they never affect the orig.  When changed-packages.sh
-# reports everything (shared change or an unresolvable range) invalidate every
-# orig to stay safe.
-if [ "$changed" = "$all" ]; then
+# Invalidate cached orig tarballs only where the orig *content* can actually
+# differ.  An orig depends on its package's get-orig.sh, on the shared assembly
+# helper scripts/lib.sh, and on the upstream version -- never on Makefile, conf/
+# or the workflow, even though those force a full *binary* rebuild via
+# changed-packages.sh.  So invalidate on the orig's real inputs, not on the
+# build-set signal (else adding a package, which must edit the Makefile, would
+# wrongly drop -- and force regeneration of -- every other package's orig):
+#   * a version bump self-heals -- the orig filename changes, so build-deb.sh
+#     regenerates it without any deletion here;
+#   * a changed packages/<pkg>/get-orig.sh -> drop just that package's orig;
+#   * a changed scripts/lib.sh -> drop every orig (it can change any of them);
+#   * an unresolvable range -> drop every orig to stay safe.
+# These inputs (get-orig.sh, scripts/lib.sh) mirror the orig cache key in
+# .github/workflows/build.yml -- keep the two in sync if the input set changes.
+range="${RANGE:-HEAD~1..HEAD}"
+if ! diff_files="$(git diff --name-only "$range" 2>/dev/null)" \
+   || grep -qE '^scripts/lib\.sh$' <<<"$diff_files"; then
     rm -f build/*.orig.tar.gz
 else
-    for f in $(git diff --name-only "${RANGE:-HEAD~1..HEAD}" -- 'packages/*/get-orig.sh' 2>/dev/null || true); do
+    while IFS= read -r f; do
+        [[ "$f" == packages/*/get-orig.sh ]] || continue
         p="${f#packages/}"; rm -f "build/${p%%/*}"_*.orig.tar.gz
-    done
+    done <<<"$diff_files"
 fi
 
 if [ "${EVENT_TYPE:-}" = "pull_request" ]; then

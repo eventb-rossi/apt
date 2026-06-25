@@ -18,6 +18,18 @@ jobs:
           # Full history so changed-packages.sh can diff against the base.
           fetch-depth: 0
 
+      # Compute the rolling cache keys once so the restore and matching save steps
+      # below cannot drift apart -- a key mismatch would silently never hit the
+      # cache and re-fetch/re-assemble everything on every run.  hashFiles reads
+      # the checked-out tree, so this must run after checkout.  Keep the orig key's
+      # inputs in sync with the orig invalidation in scripts/ci-build.sh.
+      - name: Compute cache keys
+        run: |
+          {
+            echo "ORIG_KEY=orig-v1-${{ hashFiles('packages/*/debian/changelog', 'packages/*/get-orig.sh', 'scripts/lib.sh') }}"
+            echo "DOWNLOADS_KEY=downloads-v1-${{ hashFiles('packages/*/get-orig.sh', 'scripts/lib.sh') }}"
+          } >> "$GITHUB_ENV"
+
       # Cache the sbuild chroots used to build cross-series packages (rossi ->
       # resolute).  ci-install-deps.sh (re)creates a chroot only when its tarball
       # is missing, so a restored cache skips the mmdebstrap bootstrap.  Keyed on
@@ -33,25 +45,26 @@ jobs:
       - name: Install build toolchain
         run: ./scripts/ci-install-deps.sh
 
-      # Cache the assembled orig tarballs: with them present, build-deb.sh skips
+      # Restore the assembled orig tarballs: with them present, build-deb.sh skips
       # get-orig.sh entirely for unchanged packages (no upstream downloads, no
       # b2program Gradle build).  Rolling cache -- the key changes when
       # packaging/version/get-orig change, and restore-keys brings back the most
-      # recent blob to build on top of.
-      - name: Cache orig tarballs
-        uses: actions/cache@v5
+      # recent blob to build on top of.  The matching save (gated to main pushes)
+      # runs after the build, so PR runs restore but never write a duplicate blob.
+      - name: Restore orig tarballs
+        uses: actions/cache/restore@v5
         with:
           path: build/*.orig.tar.gz
-          key: orig-v1-${{ hashFiles('packages/*/debian/changelog', 'packages/*/get-orig.sh', 'scripts/lib.sh') }}
+          key: ${{ env.ORIG_KEY }}
           restore-keys: |
             orig-v1-
 
-      # Cache raw upstream artifacts; fetch() skips anything already present.
-      - name: Cache upstream downloads
-        uses: actions/cache@v5
+      # Restore raw upstream artifacts; fetch() skips anything already present.
+      - name: Restore upstream downloads
+        uses: actions/cache/restore@v5
         with:
           path: downloads
-          key: downloads-v1-${{ hashFiles('packages/*/get-orig.sh', 'scripts/lib.sh') }}
+          key: ${{ env.DOWNLOADS_KEY }}
           restore-keys: |
             downloads-v1-
 
@@ -64,6 +77,25 @@ jobs:
           EVENT_TYPE: ${{ github.event_name }}
           RANGE: ${{ github.event_name == 'pull_request' && format('{0}...HEAD', github.event.pull_request.base.sha) || format('{0}..{1}', github.event.before, github.sha) }}
         run: scripts/ci-build.sh
+
+      # Persist the caches only from main pushes: PR / workflow_dispatch runs
+      # restore (above) but never write, so they stop creating duplicate ~700 MB
+      # blobs of content main already cached.  Same keys as the restore steps; the
+      # save is a no-op when the key already exists.  Placed right after the build
+      # so a later Lint failure cannot discard freshly assembled origs/downloads.
+      - name: Save orig tarballs
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/cache/save@v5
+        with:
+          path: build/*.orig.tar.gz
+          key: ${{ env.ORIG_KEY }}
+
+      - name: Save upstream downloads
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/cache/save@v5
+        with:
+          path: downloads
+          key: ${{ env.DOWNLOADS_KEY }}
 
       - name: Lint
         run: make lint

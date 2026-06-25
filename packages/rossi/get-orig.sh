@@ -9,17 +9,8 @@ set -euo pipefail
 : "${ROOT:?}" "${PKG:?}" "${UVER:?}" "${ORIG:?}" "${DOWNLOADS:?}"
 source "$ROOT/scripts/lib.sh"
 
-tag="v${UVER}"
-src="$DOWNLOADS/rossi-${UVER}.tar.gz"
-url="https://github.com/eventb-rossi/rossi/archive/refs/tags/${tag}.tar.gz"
-fetch "$url" "$src"
-
-# GitHub's tag tarball already unpacks to rossi-<UVER>/, which is exactly the
-# top-level directory build-deb.sh expects, so extract straight into build/.
+fetch_github_tag
 d="$ROOT/build/${PKG}-${UVER}"
-rm -rf "$d"
-tar -C "$ROOT/build" -xzf "$src"
-[ -d "$d" ] || { echo "tarball did not yield $d" >&2; exit 1; }
 
 # Vendor all crates and point Cargo at the vendored copies, so the build needs
 # no network.  cargo writes the source-replacement config stanza to stdout,

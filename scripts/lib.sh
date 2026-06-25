@@ -13,6 +13,20 @@ fetch() {
     [ -f "$dst" ] || { wget -qO "$dst.part" "$url" && mv "$dst.part" "$dst"; }
 }
 
+# fetch_github_tag -- download eventb-rossi/<PKG>'s "v<UVER>" source tarball and
+# extract it into build/<PKG>-<UVER>/.  GitHub's tag tarball already unpacks to
+# that top-level directory, which is exactly what build-deb.sh expects, so we
+# extract straight into build/.  Shared by the get-orig.sh scripts of packages
+# released as plain GitHub tags (rodin-headless, rossi).
+fetch_github_tag() {
+    local src="$DOWNLOADS/${PKG}-${UVER}.tar.gz"
+    fetch "https://github.com/eventb-rossi/${PKG}/archive/refs/tags/v${UVER}.tar.gz" "$src"
+    local d="$ROOT/build/${PKG}-${UVER}"
+    rm -rf "$d"
+    tar -C "$ROOT/build" -xzf "$src"
+    [ -d "$d" ] || { echo "tarball did not yield $d" >&2; exit 1; }
+}
+
 # pack_orig -- pack build/<PKG>-<UVER>/ into the orig tarball deterministically
 # (root-owned) and remove the staging tree.
 pack_orig() {
