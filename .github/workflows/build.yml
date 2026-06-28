@@ -35,7 +35,7 @@ jobs:
       # is missing, so a restored cache skips the mmdebstrap bootstrap.  Keyed on
       # the series list and the chroot builder, not package versions.
       - name: Cache sbuild chroots
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/sbuild
           key: sbuild-v1-${{ hashFiles('conf/distributions', 'scripts/make-chroot.sh') }}
@@ -52,7 +52,7 @@ jobs:
       # recent blob to build on top of.  The matching save (gated to main pushes)
       # runs after the build, so PR runs restore but never write a duplicate blob.
       - name: Restore orig tarballs
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: build/*.orig.tar.gz
           key: ${{ env.ORIG_KEY }}
@@ -61,7 +61,7 @@ jobs:
 
       # Restore raw upstream artifacts; fetch() skips anything already present.
       - name: Restore upstream downloads
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           path: downloads
           key: ${{ env.DOWNLOADS_KEY }}
@@ -85,14 +85,14 @@ jobs:
       # so a later Lint failure cannot discard freshly assembled origs/downloads.
       - name: Save orig tarballs
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: build/*.orig.tar.gz
           key: ${{ env.ORIG_KEY }}
 
       - name: Save upstream downloads
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           path: downloads
           key: ${{ env.DOWNLOADS_KEY }}
