@@ -23,6 +23,21 @@ override_dh_auto_install:
 	    debian/rossi/usr/bin/rossi
 	install -D -m0755 target/release/eventb-language-server \
 	    debian/rossi/usr/bin/eventb-language-server
+	# Shell completions, generated from the freshly-built binary (clap_complete)
+	# so they can't drift from the actual CLI.  Installed to the canonical vendor
+	# dirs; the files are inert without the shell/framework, so no extra Depends
+	# are needed.  Only the rossi CLI has completions -- eventb-language-server is
+	# a pure LSP server.  A non-zero exit here aborts the build rather than
+	# shipping an empty completion file.
+	install -d debian/rossi/usr/share/bash-completion/completions
+	target/release/rossi completions bash \
+	    > debian/rossi/usr/share/bash-completion/completions/rossi
+	install -d debian/rossi/usr/share/zsh/vendor-completions
+	target/release/rossi completions zsh \
+	    > debian/rossi/usr/share/zsh/vendor-completions/_rossi
+	install -d debian/rossi/usr/share/fish/vendor_completions.d
+	target/release/rossi completions fish \
+	    > debian/rossi/usr/share/fish/vendor_completions.d/rossi.fish
 
 override_dh_auto_clean:
 	rm -rf target debian/cargo-home

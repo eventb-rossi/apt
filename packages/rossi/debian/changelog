@@ -1,8 +1,10 @@
 rossi (0.1.3-1) resolute; urgency=medium
 
   * Update to upstream 0.1.3.
+  * Install shell completions for bash, zsh and fish, generated at build time
+    from the new "rossi completions" subcommand.
 
- -- Denis Efremov <efremov@linux.com>  Mon, 29 Jun 2026 13:09:26 +0000
+ -- Denis Efremov <efremov@linux.com>  Mon, 29 Jun 2026 15:06:28 +0000
 
 rossi (0.1.2-1) resolute; urgency=medium
 
