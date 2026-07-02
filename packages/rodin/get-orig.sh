@@ -6,7 +6,7 @@ set -euo pipefail
 source "$ROOT/scripts/lib.sh"
 
 # Upstream embeds an opaque build id (timestamp + git hash) in the filename.
-build_id="3.9.0.202406100806-9b87fe13d"
+build_id="3.10.0.202607010932-881664d81"
 
 url="https://downloads.sourceforge.net/rodin-b-sharp/Core_Rodin_Platform/${UVER}/rodin-${build_id}-linux.gtk.x86_64.tar.gz"
 f="$DOWNLOADS/rodin-${build_id}-linux.gtk.x86_64.tar.gz"

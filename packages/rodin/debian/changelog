@@ -1,3 +1,9 @@
+rodin (3.10-1) noble; urgency=medium
+
+  * Update to upstream Rodin 3.10.
+
+ -- Denis Efremov <efremov@linux.com>  Thu, 02 Jul 2026 12:00:00 +0000
+
 rodin (3.9-1) noble; urgency=medium
 
   * Initial Ubuntu/Debian packaging of the Rodin platform.
