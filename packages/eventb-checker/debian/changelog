@@ -1,3 +1,9 @@
+eventb-checker (1.12-1) noble; urgency=medium
+
+  * Update to upstream 1.12.
+
+ -- Denis Efremov <efremov@linux.com>  Sun, 19 Jul 2026 06:46:49 +0000
+
 eventb-checker (1.11-1) noble; urgency=medium
 
   * Update to upstream 1.11.
