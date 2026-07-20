@@ -1,0 +1,56 @@
+#!/bin/sh
+set -eu
+
+if output=$(ltsmin-convert --version 2>&1); then
+    status=0
+else
+    status=$?
+fi
+test "$status" -eq 255
+printf '%s\n' "$output" | grep -Fxq 'v3.0.2'
+
+test ! -e /usr/bin/divine
+for command in prob2lts-seq prob2lts-sym ltsmin-printtrace; do
+    test -L "/usr/lib/prob/lib/$command"
+    test "$(readlink -f "/usr/lib/prob/lib/$command")" = "/usr/bin/$command"
+done
+
+dpkg-query -L ltsmin | sed -n '\|^/usr/bin/|p' | while read -r command; do
+    if readelf --file-header "$command" >/dev/null 2>&1; then
+        ! readelf --dynamic "$command" 2>/dev/null | grep -Eq '\((RPATH|RUNPATH)\)'
+        ! readelf --dynamic "$command" 2>/dev/null | grep -Eq 'lib(ncurses|tinfo)\.so\.5'
+    fi
+done
+
+work=${AUTOPKGTEST_TMP:-$(mktemp -d)}
+cd "$work"
+cat > cycle.etf <<'EOF'
+begin state
+x:int
+end state
+begin edge
+end edge
+begin init
+0
+end init
+begin trans
+0/1
+1/0
+end trans
+EOF
+etf2lts-seq cycle.etf 2>&1 | grep -Fq '2 states 2 transitions'
+etf2lts-sym cycle.etf 2>&1 | grep -Fq 'state space has 2'
+etf2lts-mc cycle.etf 2>&1 | grep -Fq '2 states 2 transitions'
+
+cat > safe.mch <<'EOF'
+MACHINE LTSminSafe
+VARIABLES x
+INVARIANT x : 0..1
+INITIALISATION x := 0
+OPERATIONS
+  toggle = PRE x = 0 THEN x := 1 END;
+  reset = PRE x = 1 THEN x := 0 END
+END
+EOF
+probcli safe.mch -mc_with_lts_sym -nodead 2>&1 | tee prob.out
+grep -Fq 'LTSMin found no counter example' prob.out

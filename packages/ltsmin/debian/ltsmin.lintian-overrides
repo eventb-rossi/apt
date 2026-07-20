@@ -1,0 +1,25 @@
+# LTSmin is the official prebuilt Linux release. Its release recipe deliberately
+# links most third-party libraries statically; BUNDLED-COMPONENTS.md records the
+# exact versions, provenance and licenses. Rebuilding against system libraries
+# would produce a materially different, reduced tool suite.
+ltsmin: embedded-library
+
+# Upstream built the 2018 release as non-PIE and shipped already-stripped
+# executables. txt2lps/txt2pbes retain sections lintian considers unstripped,
+# but stripping vendor binaries without their matching debug sources is unsafe.
+ltsmin: hardening-no-pie
+ltsmin: unstripped-binary-or-object
+
+# The generated release-matched pages contain an AsciiDoc macro that current
+# groff warns about but still render, and four retained utilities have no page
+# in the matching source release.
+ltsmin: groff-message
+ltsmin: no-manual-page
+
+# ltl2ba's historical upstream notice contains a non-UTF-8 character. Preserve
+# the legally relevant notice byte-for-byte.
+ltsmin: national-encoding [usr/share/doc/ltsmin/licenses/ltl2ba-README]
+
+# This external package registry does not use Debian ITP bugs for initial
+# package uploads.
+ltsmin: initial-upload-closes-no-bugs

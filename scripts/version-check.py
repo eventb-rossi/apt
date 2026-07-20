@@ -87,6 +87,10 @@ PACKAGES = [
     {"pkg": "atelier-b", "mode": "track",
      "source": {"type": "atelierb",
                 "url": "https://www.atelierb.eu/en/atelier-b-support-maintenance/download-atelier-b/"}},
+    # LTSmin repackages a prebuilt release with statically linked components.
+    # Every update needs manual ABI, RPATH, archive-layout and license review.
+    {"pkg": "ltsmin", "mode": "track",
+     "source": {"type": "github", "repo": "utwente-fmt/ltsmin"}},
 
     {"pkg": "b2program", "mode": "skip", "source": {}},
 ]

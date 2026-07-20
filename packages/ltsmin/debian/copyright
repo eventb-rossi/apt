@@ -1,0 +1,91 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: LTSmin
+Source: https://github.com/utwente-fmt/ltsmin
+Disclaimer: The binary release is largely statically linked. A component,
+ version, provenance and license inventory is installed as
+ /usr/share/doc/ltsmin/BUNDLED-COMPONENTS.md.
+
+Files: *
+Copyright: 2008-2018 Formal Methods and Tools, University of Twente
+           The respective bundled-component authors
+License: 0BSD and Apache-2.0 and BSD-2-Clause and BSD-3-Clause and BSL-1.0 and GPL-2.0-only and GPL-2.0-or-later and GPL-3.0-or-later and GPL-3.0-or-later-with-GCC-exception-3.1 and LGPL-2.1-only and LGPL-2.1-or-later and LGPL-3.0-or-later and LGPL-3.0-or-later-with-Independent-modules-exception and LicenseRef-DiVinE-Murphi and MIT and MPL-2.0 and Zlib
+ The exact mapping is documented in BUNDLED-COMPONENTS.md. Complete license
+ and component notice texts are included in the upstream source under
+ licenses/, share/doc/ltsmin/COPYING and ltsmin-3.0.2/ltl2ba/README, and are
+ installed under /usr/share/doc/ltsmin/licenses/.
+
+Files: debian/*
+Copyright: 2026 Denis Efremov <efremov@linux.com>
+License: MIT
+
+License: 0BSD
+ The complete text is in licenses/0BSD.txt.
+
+License: Apache-2.0
+ The complete text is in licenses/Apache-2.0.txt.
+
+License: BSD-2-Clause
+ The complete text is in licenses/BSD-2-Clause.txt.
+
+License: BSD-3-Clause
+ The complete text is in share/doc/ltsmin/COPYING.
+
+License: BSL-1.0
+ The complete text is in licenses/BSL-1.0.txt.
+
+License: GPL-2.0-only
+ On Debian systems, the complete text is in /usr/share/common-licenses/GPL-2.
+
+License: GPL-2.0-or-later
+ The complete notice for ltl2ba is in ltsmin-3.0.2/ltl2ba/README and the
+ canonical text is in licenses/GPL-2.0-or-later.txt.
+
+License: GPL-3.0-or-later
+ The complete text is in licenses/GPL-3.0-or-later.txt.
+
+License: GPL-3.0-or-later-with-GCC-exception-3.1
+ The complete GPL text is in licenses/GPL-3.0-or-later.txt and the exception is
+ in licenses/GCC-exception-3.1.txt.
+
+License: LGPL-2.1-only
+ On Debian systems, the complete text is in /usr/share/common-licenses/LGPL-2.1.
+
+License: LGPL-2.1-or-later
+ The complete text is in licenses/LGPL-2.1-or-later.txt.
+
+License: LGPL-3.0-or-later
+ The complete text is in licenses/LGPL-3.0-or-later.txt.
+
+License: LGPL-3.0-or-later-with-Independent-modules-exception
+ The complete LGPL text is in licenses/LGPL-3.0-or-later.txt and the exception
+ is documented in licenses/ZeroMQ-README.md.
+
+License: LicenseRef-DiVinE-Murphi
+ The complete multi-component terms are in licenses/DiVinE-COPYING. The
+ affected standalone helper is retained only in the source package and omitted
+ from the Ubuntu binary package.
+
+License: MIT
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+
+License: MPL-2.0
+ The complete text is in licenses/MPL-2.0.txt.
+
+License: Zlib
+ The complete text is in licenses/Zlib.txt.

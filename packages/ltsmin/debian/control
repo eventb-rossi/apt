@@ -1,0 +1,26 @@
+Source: ltsmin
+Section: math
+Priority: optional
+Maintainer: Denis Efremov <efremov@linux.com>
+Build-Depends: debhelper-compat (= 13),
+               binutils,
+               chrpath
+Standards-Version: 4.6.2
+Homepage: https://ltsmin.utwente.nl/
+Rules-Requires-Root: no
+
+Package: ltsmin
+Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: prob,
+            default-jre-headless | java-runtime-headless,
+            gcc
+Description: high-performance language-independent model checking tools
+ LTSmin provides language-independent tools for manipulating and analyzing
+ labeled transition systems. It includes sequential, multi-core, symbolic and
+ distributed model-checking backends, with frontends for formats and tools
+ including ETF, DVE, Promela, PNML, mCRL2 and ProB.
+ .
+ This package repackages the official amd64 Linux binary release. The separate
+ DiVinE helper is omitted because it requires the ncurses 5 ABI, which is not
+ available on Ubuntu noble; ProB and the other LTSmin frontends do not use it.

@@ -1,0 +1,99 @@
+#!/usr/bin/make -f
+%:
+	dh $@
+
+# The official Linux release is already built and stripped.  The matching
+# source release is present only for generated documentation and notices.
+override_dh_auto_build:
+
+override_dh_auto_test:
+	set -e; \
+	version="$$(dpkg-parsechangelog -S Version)"; \
+	version="$${version#*:}"; version="$${version%-*}"; \
+	for command in ltsmin-convert pins2lts-seq pins2lts-mc pins2lts-sym \
+	               pins2lts-dist lps2lts-seq lps2lts-mc lps2lts-sym \
+	               lps2lts-dist pbes2lts-seq pbes2lts-mc pbes2lts-sym \
+	               pbes2lts-dist; do \
+		if output="$$(bin/$$command --version 2>&1)"; then status=0; else status=$$?; fi; \
+		test "$$status" -eq 255; \
+		test "$$(printf '%s\n' "$$output" | tail -n 1)" = "v$$version"; \
+	done; \
+	for command in txt2lps txt2pbes; do \
+		output="$$(bin/$$command --version 2>&1)"; \
+		printf '%s\n' "$$output" | grep -Fq 'mCRL2 toolset 201707.1'; \
+	done
+
+override_dh_auto_install:
+	install -d debian/ltsmin/usr/bin
+	for command in bin/*; do \
+		name="$$(basename "$$command")"; \
+		test "$$name" = divine && continue; \
+		install -m0755 "$$command" "debian/ltsmin/usr/bin/$$name"; \
+	done
+	# Remove release-builder RPATHs from the mCRL2 helpers and frontends.
+	for command in txt2lps txt2pbes \
+	               lps2lts-seq lps2lts-mc lps2lts-sym lps2lts-dist \
+	               pbes2lts-seq pbes2lts-mc pbes2lts-sym pbes2lts-dist; do \
+		chrpath --delete "debian/ltsmin/usr/bin/$$command"; \
+	done
+	install -D -m0644 share/ltsmin/spins.jar \
+		debian/ltsmin/usr/share/ltsmin/spins.jar
+	# Install release-matched generated manuals for every retained command.
+	set -e; \
+	docdir="$$(find . -mindepth 1 -maxdepth 1 -type d -name 'ltsmin-*' -print -quit)/doc"; \
+	test -d "$$docdir"; \
+	for command in debian/ltsmin/usr/bin/*; do \
+		page="$$docdir/$$(basename "$$command").1"; \
+		if test -f "$$page"; then \
+			install -D -m0644 "$$page" \
+				"debian/ltsmin/usr/share/man/man1/$$(basename "$$page")"; \
+		fi; \
+	done; \
+	for page in "$$docdir"/ltsmin.7 "$$docdir"/ltsmin-*.5 "$$docdir"/etf.5; do \
+		section="$${page##*.}"; \
+		install -D -m0644 "$$page" \
+			"debian/ltsmin/usr/share/man/man$$section/$$(basename "$$page")"; \
+	done
+	set -e; \
+	srcdir="$$(find . -mindepth 1 -maxdepth 1 -type d -name 'ltsmin-*' -print -quit)"; \
+	install -D -m0644 "$$srcdir/contrib/bash-completion/ltsmin" \
+		debian/ltsmin/usr/share/bash-completion/completions/ltsmin; \
+	install -D -m0644 share/doc/ltsmin/AUTHORS \
+		debian/ltsmin/usr/share/doc/ltsmin/AUTHORS; \
+	install -D -m0644 share/doc/ltsmin/README.md \
+		debian/ltsmin/usr/share/doc/ltsmin/README.md; \
+	install -D -m0644 share/doc/ltsmin/CODING-STANDARDS \
+		debian/ltsmin/usr/share/doc/ltsmin/CODING-STANDARDS; \
+	install -D -m0644 BUNDLED-COMPONENTS.md \
+		debian/ltsmin/usr/share/doc/ltsmin/BUNDLED-COMPONENTS.md; \
+	install -d debian/ltsmin/usr/share/doc/ltsmin/licenses; \
+	install -m0644 licenses/* debian/ltsmin/usr/share/doc/ltsmin/licenses/; \
+	install -m0644 share/doc/ltsmin/COPYING \
+		debian/ltsmin/usr/share/doc/ltsmin/licenses/LTSmin-COPYING; \
+	install -m0644 "$$srcdir/ltl2ba/README" \
+		debian/ltsmin/usr/share/doc/ltsmin/licenses/ltl2ba-README
+	# ProB searches this private extension directory relative to probcli.
+	install -d debian/ltsmin/usr/lib/prob/lib
+	for command in prob2lts-seq prob2lts-sym ltsmin-printtrace; do \
+		ln -s "/usr/bin/$$command" "debian/ltsmin/usr/lib/prob/lib/$$command"; \
+	done
+	test ! -e debian/ltsmin/usr/bin/divine
+	for command in debian/ltsmin/usr/bin/*; do \
+		if readelf --file-header "$$command" >/dev/null 2>&1; then \
+			! readelf --dynamic "$$command" 2>/dev/null | grep -Eq '\((RPATH|RUNPATH)\)'; \
+		fi; \
+	done
+
+# Do not modify or generate unusable detached debug data for upstream's
+# already-stripped executables.  dh_shlibdeps remains active so the package gets
+# accurate dependencies for every retained dynamically linked command.
+override_dh_strip:
+
+override_dh_dwz:
+
+override_dh_makeshlibs:
+
+# Keep the component notices directly readable rather than gzip-compressing
+# them as ordinary documentation.
+override_dh_compress:
+	dh_compress -Xusr/share/doc/ltsmin/licenses

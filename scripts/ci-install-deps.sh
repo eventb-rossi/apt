@@ -7,7 +7,7 @@ sudo apt-get install -y --no-install-recommends \
     dpkg-dev debhelper devscripts fakeroot lintian dh-python \
     python3-all python3-setuptools python3-wheel pybuild-plugin-pyproject \
     build-essential reprepro gnupg \
-    desktop-file-utils unzip cpio wget curl ca-certificates xz-utils \
+    desktop-file-utils unzip cpio wget curl ca-certificates xz-utils chrpath \
     default-jdk openjdk-25-jre-headless maven \
     sbuild mmdebstrap uidmap zstd
 

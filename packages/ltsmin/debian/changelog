@@ -1,0 +1,7 @@
+ltsmin (3.0.2-1) noble; urgency=medium
+
+  * Initial Ubuntu/Debian packaging of the upstream Linux binary release.
+  * Omit the standalone DiVinE helper, which requires the unavailable ncurses 5
+    compatibility ABI and is not used by ProB's LTSmin integration.
+
+ -- Denis Efremov <efremov@linux.com>  Mon, 20 Jul 2026 14:45:15 +0400

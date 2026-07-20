@@ -19,6 +19,7 @@ separate `resolute` suite.
 | `eventb-animate` | all | Animate Event-B models with ProB, without Rodin |
 | `tlc4b` | all | Model-check classical B via TLA+/TLC |
 | `b2program` | all | Generate code from B in several languages |
+| `ltsmin` | amd64 | Language-independent sequential, multi-core, symbolic and distributed model checking |
 | `prob2-ui` | all | ProB2 JavaFX animator / model checker UI |
 | `prob` | amd64 | ProB animator, constraint solver, model checker (`prob`, `probcli`) |
 | `rodin` | amd64 | Rodin Platform — Eclipse-based Event-B IDE |
@@ -44,7 +45,7 @@ echo "deb [signed-by=/etc/apt/keyrings/eventb.gpg] https://eventb-rossi.github.i
 
 # 3. Install what you need
 sudo apt update
-sudo apt install rodin prob prob2-ui   # on resolute (26.04), rossi is also available
+sudo apt install rodin prob prob2-ui ltsmin   # on resolute (26.04), rossi is also available
 ```
 
 ## Building locally
@@ -56,7 +57,7 @@ at build time.
 # Install the build toolchain (one time)
 sudo apt install dpkg-dev debhelper devscripts fakeroot lintian dh-python \
   python3-all python3-setuptools build-essential reprepro gnupg \
-  desktop-file-utils unzip cpio wget curl xz-utils default-jdk openjdk-25-jre-headless
+  desktop-file-utils unzip cpio wget curl xz-utils chrpath default-jdk openjdk-25-jre-headless
 
 # rossi targets resolute (26.04) for rustc >= 1.85, so it needs two extra
 # host-side tools beyond the list above:
@@ -77,6 +78,15 @@ REPO_GPG_KEY=you@example.com make repo
 # make repo refuses to run without REPO_GPG_KEY; pass REPO_ALLOW_UNSIGNED=1
 # to build an unsigned repo for local testing only.
 ```
+
+### LTSmin
+
+`ltsmin` repackages the official 3.0.2 amd64 Linux release. It includes the
+sequential, multi-core, symbolic and distributed backends and automatically
+integrates with the packaged ProB commands. Java and GCC are recommended for
+the optional SpinS frontend. The standalone `divine` helper is omitted because
+it requires the obsolete ncurses 5 ABI, which noble does not provide; ProB and
+the other LTSmin frontends do not use it.
 
 Each package lives under `packages/<name>/`:
 

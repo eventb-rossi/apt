@@ -1,0 +1,6 @@
+# The orig tarball contains both official v3.0.2 release artifacts: the complete
+# Linux binary distribution at its root and the matching generated source
+# release under ltsmin-3.0.2/. Lintian cannot associate those separately built
+# ELF files with that nested source tree, but the exact matching source is
+# included in the source package and documented by BUNDLED-COMPONENTS.md.
+ltsmin source: source-is-missing [bin/*]
