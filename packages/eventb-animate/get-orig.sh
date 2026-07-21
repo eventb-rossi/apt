@@ -5,7 +5,7 @@ set -euo pipefail
 source "$ROOT/scripts/lib.sh"
 
 tag="v${UVER}"
-jar_url="https://github.com/eventb-rossi/eventb-animate/releases/download/${tag}/eventb-animate.jar"
+jar_url="https://github.com/eventb-rossi/eventb-animate/releases/download/${tag}/eventb-animate-${UVER}.jar"
 lic_url="https://raw.githubusercontent.com/eventb-rossi/eventb-animate/${tag}/LICENSE"
 
 jar="$DOWNLOADS/eventb-animate-${UVER}.jar"
