@@ -1,6 +1,11 @@
 #!/bin/sh
 set -eu
 
+# LTSmin 3.0.2 predates cgroup v2 resource discovery.  Exercise the real
+# multi-process path with deterministic bounds instead of deriving host limits.
+export LTSMIN_NUM_CPUS=2
+export LTSMIN_MEM_SIZE=67108864  # 64 MiB
+
 if output=$(ltsmin-convert --version 2>&1); then
     status=0
 else

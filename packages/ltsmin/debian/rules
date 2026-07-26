@@ -6,8 +6,12 @@
 # source release is present only for generated documentation and notices.
 override_dh_auto_build:
 
+# The legacy *-mc frontends initialize their multi-process runtime even for
+# --version.  Keep this metadata check single-process so host resource
+# detection cannot trigger a large shared-memory preallocation.
 override_dh_auto_test:
 	set -e; \
+	export LTSMIN_NUM_CPUS=1; \
 	version="$$(dpkg-parsechangelog -S Version)"; \
 	version="$${version#*:}"; version="$${version%-*}"; \
 	for command in ltsmin-convert pins2lts-seq pins2lts-mc pins2lts-sym \
@@ -15,12 +19,23 @@ override_dh_auto_test:
 	               lps2lts-dist pbes2lts-seq pbes2lts-mc pbes2lts-sym \
 	               pbes2lts-dist; do \
 		if output="$$(bin/$$command --version 2>&1)"; then status=0; else status=$$?; fi; \
-		test "$$status" -eq 255; \
-		test "$$(printf '%s\n' "$$output" | tail -n 1)" = "v$$version"; \
+		last_line="$$(printf '%s\n' "$$output" | tail -n 1)"; \
+		if test "$$status" -ne 255 || test "$$last_line" != "v$$version"; then \
+			printf '%s\n' \
+				"$$command --version failed: status=$$status, expected status 255 and final line v$$version" >&2; \
+			printf '%s\n' "$$output" >&2; \
+			exit 1; \
+		fi; \
 	done; \
 	for command in txt2lps txt2pbes; do \
-		output="$$(bin/$$command --version 2>&1)"; \
-		printf '%s\n' "$$output" | grep -Fq 'mCRL2 toolset 201707.1'; \
+		if output="$$(bin/$$command --version 2>&1)"; then status=0; else status=$$?; fi; \
+		if test "$$status" -ne 0 \
+		   || ! printf '%s\n' "$$output" | grep -Fq 'mCRL2 toolset 201707.1'; then \
+			printf '%s\n' \
+				"$$command --version failed: status=$$status, expected mCRL2 toolset 201707.1" >&2; \
+			printf '%s\n' "$$output" >&2; \
+			exit 1; \
+		fi; \
 	done
 
 override_dh_auto_install:
