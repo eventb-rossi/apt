@@ -1,3 +1,9 @@
+eventb-animate (6.3-1) noble; urgency=medium
+
+  * Update to upstream 6.3.
+
+ -- Denis Efremov <efremov@linux.com>  Sun, 26 Jul 2026 08:58:55 +0000
+
 eventb-animate (6.2-1) noble; urgency=medium
 
   * Update to upstream 6.2.
