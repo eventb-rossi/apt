@@ -1,3 +1,9 @@
+prob (1.16.0-1) noble; urgency=medium
+
+  * Update to upstream 1.16.0.
+
+ -- Denis Efremov <efremov@linux.com>  Thu, 06 Aug 2026 09:24:24 +0000
+
 prob (1.15.1-1) noble; urgency=medium
 
   * Initial Ubuntu/Debian packaging of ProB (Tcl/Tk).
