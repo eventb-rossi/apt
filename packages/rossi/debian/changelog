@@ -1,3 +1,9 @@
+rossi (0.1.9-1) resolute; urgency=medium
+
+  * Update to upstream 0.1.9.
+
+ -- Denis Efremov <efremov@linux.com>  Tue, 18 Aug 2026 20:21:12 +0000
+
 rossi (0.1.8-1) resolute; urgency=medium
 
   * Update to upstream 0.1.8.
