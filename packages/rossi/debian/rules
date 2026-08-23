@@ -12,7 +12,39 @@ export CARGO_HOME = $(CURDIR)/debian/cargo-home
 	dh $@
 
 override_dh_auto_build:
-	cargo build --release --frozen -p rossi-cli -p eventb-lsp
+	# Two-phase profile-guided optimization build, mirroring rossi's own release
+	# workflow and the gentoo-overlay/fedora-copr rossi packages: build an
+	# instrumented rossi, train it on the in-repo example models, merge the
+	# resulting profile, then rebuild both binaries reading it back. The
+	# instrument and profile-use cargo invocations must differ ONLY in that
+	# RUSTFLAGS value -- any other difference changes rustc's -Cmetadata (baked
+	# into the mangled symbols profiles are matched against) and PGO silently
+	# stops applying. Unconditional (unlike gentoo-overlay's opt-in USE flag):
+	# this package builds once, centrally, in a controlled chroot, so there's no
+	# per-user build-time tradeoff to gate behind a flag. Older source tags
+	# without scripts/pgo-train.sh fall back to a plain build -- version bumps
+	# only ever touch debian/changelog (see scripts/version-check.py), never
+	# this file, so it has to stay correct against whatever tag it's pointed at.
+	if [ -x scripts/pgo-train.sh ] && [ -d crates/rossi/examples ]; then \
+		llvm_ver=$$(rustc --version --verbose | sed -n 's/^LLVM version: \([0-9]*\).*/\1/p'); \
+		profdata="llvm-profdata-$$llvm_ver"; \
+		command -v "$$profdata" >/dev/null 2>&1 || { \
+			echo "error: $$profdata not found; PGO needs the llvm Build-Depends" \
+			     "to provide an llvm-profdata matching rustc's LLVM $$llvm_ver" >&2; \
+			exit 1; \
+		}; \
+		pgodir="$(CURDIR)/target/pgo-profiles"; \
+		rm -rf "$$pgodir"; \
+		RUSTFLAGS="$${RUSTFLAGS:-} -Cprofile-generate=$$pgodir" \
+			cargo build --release --frozen -p rossi-cli; \
+		scripts/pgo-train.sh target/release/rossi; \
+		"$$profdata" merge -o target/pgo-merged.profdata "$$pgodir"; \
+		RUSTFLAGS="$${RUSTFLAGS:-} -Cprofile-use=$(CURDIR)/target/pgo-merged.profdata" \
+			cargo build --release --frozen -p rossi-cli -p eventb-lsp; \
+	else \
+		echo "scripts/pgo-train.sh or crates/rossi/examples absent; building without PGO" >&2; \
+		cargo build --release --frozen -p rossi-cli -p eventb-lsp; \
+	fi
 
 override_dh_auto_test:
 	target/release/rossi --version

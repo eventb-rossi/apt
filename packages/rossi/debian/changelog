@@ -1,3 +1,13 @@
+rossi (0.1.9-2) resolute; urgency=medium
+
+  * Build release binaries with profile-guided optimization (PGO):
+    instrument, train on the in-repo example models, merge the profile, and
+    rebuild both binaries against it, mirroring upstream's release workflow
+    and the gentoo-overlay/fedora-copr rossi packages. Falls back to a plain
+    build on source tags that predate scripts/pgo-train.sh.
+
+ -- Denis Efremov <efremov@linux.com>  Sun, 23 Aug 2026 07:38:59 +0000
+
 rossi (0.1.9-1) resolute; urgency=medium
 
   * Update to upstream 0.1.9.
