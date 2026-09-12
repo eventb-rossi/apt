@@ -88,6 +88,17 @@ the optional SpinS frontend. The standalone `divine` helper is omitted because
 it requires the obsolete ncurses 5 ABI, which noble does not provide; ProB and
 the other LTSmin frontends do not use it.
 
+### B2Program
+
+`b2program` has no upstream release, so its fat jar is built during orig
+assembly from a pinned commit. It depends on `de.hhu.stups:antlr-parser`, which
+upstream only ever published as a snapshot; Sonatype expires snapshots that are
+not republished, and that one is gone from every Maven repository. The parser is
+therefore built from its own pinned commit into a build-local Maven repository
+first, and the fat jar is linked against that. This needs `git`, a JDK and
+network access during orig assembly only -- the `.deb` build itself stays
+offline, like every other package here.
+
 Each package lives under `packages/<name>/`:
 
 ```
