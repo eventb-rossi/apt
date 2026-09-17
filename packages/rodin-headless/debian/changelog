@@ -1,3 +1,9 @@
+rodin-headless (5.0-1) noble; urgency=medium
+
+  * Update to upstream 5.0.
+
+ -- Denis Efremov <efremov@linux.com>  Thu, 17 Sep 2026 22:03:18 +0000
+
 rodin-headless (4.0-1) noble; urgency=medium
 
   * Initial Ubuntu/Debian packaging of rodin-headless.
