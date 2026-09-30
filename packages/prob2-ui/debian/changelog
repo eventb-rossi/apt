@@ -1,3 +1,9 @@
+prob2-ui (1.4.0-1) noble; urgency=medium
+
+  * Update to upstream 1.4.0.
+
+ -- Denis Efremov <efremov@linux.com>  Wed, 30 Sep 2026 12:56:09 +0000
+
 prob2-ui (1.3.1-1) noble; urgency=medium
 
   * Initial Ubuntu/Debian packaging of ProB2-UI.
