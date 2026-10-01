@@ -20,7 +20,7 @@ separate `resolute` suite.
 | `tlc4b` | all | Model-check classical B via TLA+/TLC |
 | `b2program` | all | Generate code from B in several languages |
 | `ltsmin` | amd64 | Language-independent sequential, multi-core, symbolic and distributed model checking |
-| `prob2-ui` | all | ProB2 JavaFX animator / model checker UI |
+| `prob2-ui` | amd64 | ProB2 JavaFX animator / model checker UI |
 | `prob` | amd64 | ProB animator, constraint solver, model checker (`prob`, `probcli`) |
 | `rodin` | amd64 | Rodin Platform — Eclipse-based Event-B IDE |
 | `rodin-rc` | amd64 | Rodin Platform release candidate (conflicts with `rodin`) |
@@ -98,6 +98,13 @@ therefore built from its own pinned commit into a build-local Maven repository
 first, and the fat jar is linked against that. This needs `git`, a JDK and
 network access during orig assembly only -- the `.deb` build itself stays
 offline, like every other package here.
+
+### ProB2-UI
+
+Since 1.4.0 upstream no longer publishes a standalone jar; Linux gets only a
+jpackage bundle (`prob2-ui_<version>_amd64.deb`) with its own Java 21 runtime.
+`prob2-ui` repackages that bundle unmodified under `/usr/lib/prob2-ui`, so it
+uses the bundled runtime rather than the system Java.
 
 Each package lives under `packages/<name>/`:
 

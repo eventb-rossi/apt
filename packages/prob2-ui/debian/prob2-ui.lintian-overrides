@@ -1,0 +1,19 @@
+# ProB2-UI is repackaged from the upstream jpackage bundle: the native launcher,
+# the private OpenJDK 21 runtime and the application jar are third-party prebuilt
+# artifacts shipped unmodified, so the following tags are expected.
+
+# Prebuilt launcher and Java runtime libraries; the runtime statically links its
+# own copies of freetype, lcms2, libjpeg and zlib, exactly as upstream builds it.
+prob2-ui: unstripped-binary-or-object [usr/lib/prob2-ui/*]
+prob2-ui: hardening-no-fortify-functions [usr/lib/prob2-ui/*]
+prob2-ui: embedded-library * [usr/lib/prob2-ui/lib/runtime/lib/*]
+prob2-ui: spelling-error-in-binary * [usr/lib/prob2-ui/lib/runtime/lib/*]
+
+# The application jar and the runtime's jrt-fs.jar are private to the bundle,
+# which the launcher locates relative to itself; they are not shared libraries.
+prob2-ui: jar-not-in-usr-share [usr/lib/prob2-ui/*]
+
+# License notices of the runtime's third-party components, which have to stay
+# alongside the runtime they describe.
+prob2-ui: package-contains-documentation-outside-usr-share-doc [usr/lib/prob2-ui/*]
+prob2-ui: extra-license-file [usr/lib/prob2-ui/lib/runtime/legal/*]

@@ -2,16 +2,29 @@
 %:
 	dh $@
 
-# Prebuilt multi-platform jar: nothing to compile or test here.
+# Prebuilt upstream jpackage bundle (application jar + private Java runtime):
+# only repackage it.
 override_dh_auto_build:
 
 override_dh_auto_test:
 
 override_dh_auto_install:
-	install -D -m0644 prob2-ui.jar \
-	    debian/prob2-ui/usr/share/java/prob2-ui/prob2-ui.jar
+	mkdir -p debian/prob2-ui/usr/lib
+	cp -a opt/prob2-ui debian/prob2-ui/usr/lib/prob2-ui
+	# Upstream's desktop entry hardcodes /opt paths; ours is installed below.
+	rm debian/prob2-ui/usr/lib/prob2-ui/lib/prob2-ui-ProB2-UI.desktop
 	install -D -m0755 debian/prob2-ui.sh debian/prob2-ui/usr/bin/prob2-ui
-	install -D -m0644 prob2-ui.png \
+	install -D -m0644 opt/prob2-ui/lib/ProB2-UI.png \
 	    debian/prob2-ui/usr/share/icons/hicolor/256x256/apps/prob2-ui.png
 	install -D -m0644 debian/prob2-ui.desktop \
 	    debian/prob2-ui/usr/share/applications/prob2-ui.desktop
+
+# Do not strip / compute library dependencies from the prebuilt binaries; the
+# runtime dependencies of the bundled Java runtime are listed in debian/control.
+override_dh_strip:
+
+override_dh_dwz:
+
+override_dh_shlibdeps:
+
+override_dh_makeshlibs:

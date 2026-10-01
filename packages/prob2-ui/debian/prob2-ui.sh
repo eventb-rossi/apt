@@ -1,4 +1,4 @@
 #!/bin/sh
-# Launcher for ProB2-UI.
-exec /usr/bin/java --enable-native-access=ALL-UNNAMED \
-    -jar /usr/share/java/prob2-ui/prob2-ui.jar "$@"
+# Launcher for ProB2-UI: run the upstream jpackage launcher, which starts the
+# application on its bundled Java runtime.
+exec /usr/lib/prob2-ui/bin/ProB2-UI "$@"

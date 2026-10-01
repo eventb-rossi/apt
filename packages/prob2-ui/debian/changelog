@@ -1,6 +1,10 @@
 prob2-ui (1.4.0-1) noble; urgency=medium
 
   * Update to upstream 1.4.0.
+  * Upstream dropped the multi-platform jar: repackage the upstream amd64
+    jpackage bundle (with its private Java 21 runtime) under /usr/lib/prob2-ui.
+    The package is now Architecture: amd64 and no longer depends on a system
+    Java runtime.
 
  -- Denis Efremov <efremov@linux.com>  Wed, 30 Sep 2026 12:56:09 +0000
 
