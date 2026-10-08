@@ -16,7 +16,7 @@ separate `resolute` suite.
 | `eventb-to-txt` | all | Convert Event-B machines/contexts to CamilleX text |
 | `evbt` | all | EventBTool — code generation and documentation |
 | `eventb-checker` | all | Standalone Event-B model type checker |
-| `eventb-animate` | all | Animate Event-B models with ProB, without Rodin |
+| `eventb-animate` | amd64 | Animate Event-B models with ProB, without Rodin |
 | `tlc4b` | all | Model-check classical B via TLA+/TLC |
 | `b2program` | all | Generate code from B in several languages |
 | `ltsmin` | amd64 | Language-independent sequential, multi-core, symbolic and distributed model checking |
