@@ -32,15 +32,24 @@ separate `resolute` suite.
 
 Most packages are published for **noble (24.04)**; `rossi` is published for
 **resolute (26.04)**. The snippet below picks the suite matching your release.
+No suite is published under a Debian codename, so on Debian, or on any release
+other than these two, it falls back to `noble`: the Java-based packages there
+(`rodin`, `prob`, `eventb-animate`, `eventb-checker`, ...) declare no
+Ubuntu-specific dependencies. `rossi` needs `libc6 >= 2.39`, which Debian 12
+(bookworm) does not provide.
 
 ```sh
 # 1. Trust the repository signing key
 curl -fsSL https://eventb-rossi.github.io/apt/KEY.gpg \
   | sudo gpg --dearmor -o /etc/apt/keyrings/eventb.gpg
 
-# 2. Add the repository for your Ubuntu release (noble or resolute)
+# 2. Add the repository: the resolute suite on Ubuntu 26.04, noble elsewhere
 . /etc/os-release
-echo "deb [signed-by=/etc/apt/keyrings/eventb.gpg] https://eventb-rossi.github.io/apt ${VERSION_CODENAME} main" \
+case "${VERSION_CODENAME}" in
+  resolute) suite=resolute ;;
+  *) suite=noble ;;
+esac
+echo "deb [signed-by=/etc/apt/keyrings/eventb.gpg] https://eventb-rossi.github.io/apt ${suite} main" \
   | sudo tee /etc/apt/sources.list.d/eventb.list
 
 # 3. Install what you need
