@@ -1,3 +1,14 @@
+rodin (3.10.0+2611-1) noble; urgency=medium
+
+  * Switch to the eventb-rossi Rodin Bundle 3.10.0-2611
+    (https://github.com/eventb-rossi/Rodin-Bundle): Rodin 3.10 with parallel
+    automatic proving, the SMT solvers, ProB, the Proof Obligation Cleaner and
+    the Rossi bridge, instead of the vanilla SourceForge build.
+  * The upstream version encodes the bundle tag: <rodin>+<YYMM>[.<n>][~rc<n>].
+  * Require a Java 21 runtime, as the bundle does.
+
+ -- Denis Efremov <efremov@linux.com>  Mon, 16 Nov 2026 13:33:37 +0000
+
 rodin (3.10-1) noble; urgency=medium
 
   * Update to upstream Rodin 3.10.

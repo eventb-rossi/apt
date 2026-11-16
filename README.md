@@ -22,8 +22,8 @@ separate `resolute` suite.
 | `ltsmin` | amd64 | Language-independent sequential, multi-core, symbolic and distributed model checking |
 | `prob2-ui` | amd64 | ProB2 JavaFX animator / model checker UI |
 | `prob` | amd64 | ProB animator, constraint solver, model checker (`prob`, `probcli`) |
-| `rodin` | amd64 | Rodin Platform — Eclipse-based Event-B IDE |
-| `rodin-rc` | amd64 | Rodin Platform release candidate (conflicts with `rodin`) |
+| `rodin` | amd64 | Rodin Platform — Eclipse-based Event-B IDE ([Rodin Bundle](https://github.com/eventb-rossi/Rodin-Bundle): SMT, ProB, PO Cleaner, Rossi bridge) |
+| `rodin-rc` | amd64 | Newest Rodin Bundle, release candidates included (conflicts with `rodin`) |
 | `rodin-headless` | all | Headless CLI to build, check, and prove Rodin Event-B models |
 | `atelier-b` | amd64 | Atelier B Community Edition (B method IDE) |
 | `rossi` | amd64 | Rust toolchain for Event-B (`rossi`, `eventb-language-server`) |
@@ -87,6 +87,22 @@ REPO_GPG_KEY=you@example.com make repo
 # make repo refuses to run without REPO_GPG_KEY; pass REPO_ALLOW_UNSIGNED=1
 # to build an unsigned repo for local testing only.
 ```
+
+### Rodin
+
+`rodin` repackages the Linux build of the eventb-rossi
+[Rodin Bundle](https://github.com/eventb-rossi/Rodin-Bundle): Rodin 3.10 with
+parallel automatic proving, the SMT solvers, ProB, the Proof Obligation Cleaner
+and the Rossi bridge. It needs a **Java 21** or newer runtime: noble's
+`default-jre` already is one, but Debian 12 (bookworm) stops at Java 17, so
+install a Java 21 runtime there first.
+
+The package version encodes the release tag: `v3.10.0-2611` is packaged as
+`3.10.0+2611`, a second release in a month (`v3.10.0-2609.2`) as
+`3.10.0+2609.2`, and a release candidate (`v3.10.0-2611-rc1`) as
+`3.10.0+2611~rc1`. `rodin-rc` follows the newest release, release candidates
+included, so between candidates it carries the same build as `rodin`. Both are
+bumped automatically when a release is published.
 
 ### LTSmin
 

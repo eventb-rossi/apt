@@ -1,12 +1,34 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Rodin
-Source: https://www.event-b.org/install.html
+Upstream-Name: Rodin Bundle (eventb-rossi)
+Source: https://github.com/eventb-rossi/Rodin-Bundle
 
 Files: *
 Copyright: 2005-2026 the Rodin platform developers
            (Systerel, ETH Zurich, University of Southampton and others)
+           2020-2026 ISP RAS and the eventb-rossi contributors
            2000-2026 Eclipse Foundation, Inc. and others
 License: EPL-1.0 and EPL-2.0
+
+Files: plugins/de.prob*
+       features/de.prob2*
+Copyright: 2000-2026 Michael Leuschel and the ProB contributors,
+           Heinrich Heine University Duesseldorf, STUPS group
+License: EPL-1.0
+
+Files: plugins/ru.ispras.eventb.pocleaner*
+       features/ru.ispras.eventb.pocleaner*
+Copyright: 2020 ISP RAS
+License: EPL-2.0
+
+Files: plugins/org.eventb.rossi.bridge*
+       features/org.eventb.rossi.bridge*
+Copyright: 2026 eventb-rossi
+License: EPL-2.0
+
+Files: plugins/org.eventb.rossi_*
+       features/org.eventb.rossi.feature_*
+Copyright: 2026 eventb-rossi
+License: EPL-1.0
 
 Files: debian/*
 Copyright: 2026 Denis Efremov <efremov@linux.com>

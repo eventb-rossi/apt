@@ -1,3 +1,13 @@
+rodin-rc (3.10.0+2611-1) noble; urgency=medium
+
+  * Switch to the eventb-rossi Rodin Bundle
+    (https://github.com/eventb-rossi/Rodin-Bundle), tracking its newest
+    release or release candidate, currently 3.10.0-2611.
+  * The upstream version encodes the bundle tag: <rodin>+<YYMM>[.<n>][~rc<n>].
+  * Require a Java 21 runtime, as the bundle does.
+
+ -- Denis Efremov <efremov@linux.com>  Mon, 16 Nov 2026 13:33:37 +0000
+
 rodin-rc (3.10.0~rc2-1) noble; urgency=medium
 
   * Initial Ubuntu/Debian packaging of the Rodin platform 3.10 RC2.

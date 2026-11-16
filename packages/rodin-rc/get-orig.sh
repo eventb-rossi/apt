@@ -1,18 +1,14 @@
 #!/usr/bin/env bash
-# Assemble the orig tarball for the Rodin platform release candidate from the
-# upstream Eclipse RCP binary distribution.
+# Assemble the orig tarball for the newest eventb-rossi Rodin Bundle release,
+# release candidates included, from its Linux x86_64 Eclipse RCP archive
+# (https://github.com/eventb-rossi/Rodin-Bundle/releases).
 set -euo pipefail
 : "${ROOT:?}" "${PKG:?}" "${UVER:?}" "${ORIG:?}" "${DOWNLOADS:?}"
 source "$ROOT/scripts/lib.sh"
 
-# Upstream uses an "<x.y>-RC<n>" download directory and embeds an opaque build id
-# (timestamp + git hash) in the filename.
-path_seg="3.10-RC2"
-build_id="3.10.0.202605210654-RC2-881664d81"
-
-url="https://downloads.sourceforge.net/rodin-b-sharp/Core_Rodin_Platform/${path_seg}/rodin-${build_id}-linux.gtk.x86_64.tar.gz"
-f="$DOWNLOADS/rodin-${build_id}-linux.gtk.x86_64.tar.gz"
-fetch "$url" "$f"
+# ${UVER} names the release tag; the build qualifier in the asset name is
+# resolved (and the download verified) through the release's SHA256SUMS.
+f="$(fetch_rodin_bundle)"
 
 work=$(mktemp -d)
 tar --warning=no-unknown-keyword -C "$work" -xzf "$f"   # extracts top-level "rodin"
