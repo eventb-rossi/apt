@@ -30,7 +30,8 @@ fetch_github_tag() {
 
 # fetch_rodin_bundle -- download the Linux x86_64 archive of the eventb-rossi
 # Rodin Bundle release that <UVER> names, verify it against the release's
-# SHA256SUMS, and print its local path.  Shared by rodin and rodin-rc.
+# SHA256SUMS, and extract it into build/<PKG>-<UVER>/ (like fetch_github_tag).
+# Shared by rodin and rodin-rc.
 #
 # The Debian upstream version maps one-to-one onto the release tag:
 #   3.10.0+2611 -> v3.10.0-2611,  3.10.0+2609.2 -> v3.10.0-2609.2,
@@ -39,27 +40,33 @@ fetch_github_tag() {
 # candidate below its final release).  The asset name embeds an opaque build
 # qualifier (commit date + hash) that the tag cannot reconstruct, so it is read
 # from SHA256SUMS -- which also gives the checksum to verify the download with.
+#
+# Downloads are cached per tag: a candidate and its final release can publish
+# the same asset name with different contents.
 fetch_rodin_bundle() {
     local tag="v${UVER/+/-}"
     tag="${tag/\~rc/-rc}"
     local base="https://github.com/eventb-rossi/Rodin-Bundle/releases/download/${tag}"
-    local sums="$DOWNLOADS/rodin-bundle-${tag}.SHA256SUMS"
-    # Errors are returned explicitly: callers use this in a command substitution,
-    # where bash does not apply set -e.
-    fetch "$base/SHA256SUMS" "$sums" || { echo "cannot fetch $base/SHA256SUMS" >&2; return 1; }
+    local dl="$DOWNLOADS/rodin-bundle/${tag}"
+    mkdir -p "$dl"
+    fetch "$base/SHA256SUMS" "$dl/SHA256SUMS"
 
-    local line sum asset
-    line="$(grep -E '^[0-9a-f]{64}  rodin-[^ /]+-rossi-linux\.gtk\.x86_64\.tar\.gz$' "$sums")" || {
-        echo "no Linux x86_64 archive listed in $tag's SHA256SUMS" >&2; return 1; }
-    [ "$(wc -l <<<"$line")" -eq 1 ] || {
-        echo "several Linux x86_64 archives listed in $tag's SHA256SUMS" >&2; return 1; }
-    sum="${line%% *}"
+    local line asset
+    line="$(grep -E '^[0-9a-f]{64}  rodin-[^ /]+-rossi-linux\.gtk\.x86_64\.tar\.gz$' "$dl/SHA256SUMS" || true)"
+    [ -n "$line" ] && [ "$(wc -l <<<"$line")" -eq 1 ] || {
+        echo "expected one Linux x86_64 archive in $tag's SHA256SUMS" >&2; exit 1; }
     asset="${line##* }"
+    fetch "$base/$asset" "$dl/$asset"
+    # On a mismatch drop both files, so the next run downloads them afresh.
+    (cd "$dl" && sha256sum --quiet -c - <<<"$line") || {
+        rm -f "$dl/$asset" "$dl/SHA256SUMS"; exit 1; }
 
-    fetch "$base/$asset" "$DOWNLOADS/$asset" || { echo "cannot fetch $base/$asset" >&2; return 1; }
-    (cd "$DOWNLOADS" && sha256sum --quiet -c - <<<"$sum  $asset") >&2 || {
-        echo "checksum mismatch for $asset" >&2; rm -f "$DOWNLOADS/$asset"; return 1; }
-    echo "$DOWNLOADS/$asset"
+    local d="$ROOT/build/${PKG}-${UVER}" work
+    work="$(mktemp -d)"
+    tar --warning=no-unknown-keyword -C "$work" -xzf "$dl/$asset"   # top-level "rodin"
+    rm -rf "$d"
+    mv "$work/rodin" "$d"
+    rm -rf "$work"
 }
 
 # pack_orig -- pack build/<PKG>-<UVER>/ into the orig tarball deterministically
