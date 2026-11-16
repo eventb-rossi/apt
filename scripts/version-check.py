@@ -9,9 +9,13 @@ homebrew-tap's release tracker:
     touches only debian/changelog: prepend a new stanza. get-orig.sh and the
     build pick up the new version automatically. These are turned into PRs.
 
-  * "track" packages embed an opaque build id (rodin), a release-candidate
-    build id (rodin-rc), or a dated vendor path (atelier-b) that the version
-    number alone can't reconstruct, so they can't be bumped blindly. We only
+    rodin and rodin-rc are bump packages too: their asset names embed an
+    opaque build qualifier, but get-orig.sh resolves it from the release's
+    SHA256SUMS, so the changelog version (which encodes the release tag) is
+    still all it needs.
+
+  * "track" packages embed a dated vendor path (atelier-b) or need a manual
+    review on every update (ltsmin), so they can't be bumped blindly. We only
     detect the new version and file a GitHub issue for a human to handle.
 
 Subcommands:
@@ -48,9 +52,10 @@ CHANGELOG_AUTHOR = "Denis Efremov <efremov@linux.com>"
 #   github         -> latest non-prerelease GitHub release, else highest tag
 #   maven          -> latest release in a Maven repo's maven-metadata.xml
 #   apache_index   -> newest X.Y.Z subdirectory in an Apache/nginx autoindex
-#   sourceforge    -> newest plain X.Y.Z version dir under a SourceForge path
-#   sourceforge_rc -> newest X.Y[.Z]-RCn dir under a SourceForge path
 #   atelierb       -> scrape the Atelier B download page for the free version
+#   rodin_bundle   -> newest complete eventb-rossi/Rodin-Bundle release, as a
+#                     Debian upstream version (see bundle_deb_version); with
+#                     "prerelease": true, release candidates count too
 PACKAGES = [
     {"pkg": "eventb-to-txt", "mode": "bump",
      "source": {"type": "pypi", "name": "eventb-to-txt"}},
@@ -78,12 +83,14 @@ PACKAGES = [
      "source": {"type": "apache_index",
                 "url": "https://stups.hhu-hosting.de/downloads/prob2/"}},
 
-    {"pkg": "rodin", "mode": "track",
-     "source": {"type": "sourceforge", "project": "rodin-b-sharp",
-                "path": "/Core_Rodin_Platform"}},
-    {"pkg": "rodin-rc", "mode": "track",
-     "source": {"type": "sourceforge_rc", "project": "rodin-b-sharp",
-                "path": "/Core_Rodin_Platform"}},
+    # The eventb-rossi Rodin Bundle. rodin-rc follows the newest release
+    # whether or not it is a release candidate, so between candidates it ships
+    # the same build as rodin.
+    {"pkg": "rodin", "mode": "bump",
+     "source": {"type": "rodin_bundle"}},
+    {"pkg": "rodin-rc", "mode": "bump",
+     "source": {"type": "rodin_bundle", "prerelease": True}},
+
     {"pkg": "atelier-b", "mode": "track",
      "source": {"type": "atelierb",
                 "url": "https://www.atelierb.eu/en/atelier-b-support-maintenance/download-atelier-b/"}},
@@ -115,7 +122,6 @@ def gh_headers() -> dict:
 
 # Leading dotted-numeric run of a version-ish string (drops a v-prefix / suffix).
 VERSION_RE = re.compile(r"\d+(?:\.\d+)*")
-RC_RE = re.compile(r"[-_.]?RC(\d+)", re.IGNORECASE)
 
 
 def version_tuple(s: str) -> tuple[int, ...]:
@@ -139,26 +145,6 @@ def version_newer(latest: str, current: str) -> bool:
     """True if `latest` is a newer release than `current` (suffixes ignored)."""
     a, b = _padded_pair(latest, current)
     return a > b
-
-
-def rc_num(s: str) -> int:
-    """Trailing RC number of a version string, e.g. '3.10-RC2' -> 2 (0 if none)."""
-    m = RC_RE.search(s)
-    return int(m.group(1)) if m else 0
-
-
-def version_newer_rc(latest: str, current: str) -> bool:
-    """RC-aware comparison: compare the (padded) base first, then the RC number.
-
-    Padding makes a SourceForge `3.10-RC2` (base (3,10)) and a packaged
-    `3.10.0~rc2` (base (3,10,0)) count as the same base, so a same-base RC bump
-    (RC2 -> RC3) is caught instead of falling through to the RC-blind base
-    comparison.
-    """
-    a, b = _padded_pair(latest, current)
-    if a != b:
-        return a > b
-    return rc_num(latest) > rc_num(current)
 
 
 def clean_pv(tag: str) -> str:
@@ -260,22 +246,6 @@ def _scrape_max(url: str, pattern: str, what: str, *, flags: int = 0,
     return max(versions, key=key)
 
 
-def latest_sourceforge(project: str, path: str) -> str:
-    """Newest plain version directory directly under a SourceForge files path."""
-    pat = re.escape(path.rstrip("/")) + r"/(\d+(?:\.\d+)*)/"
-    return _scrape_max(f"https://sourceforge.net/projects/{project}/rss?path={path}",
-                       pat, f"no versions matched under {path}")
-
-
-def latest_sourceforge_rc(project: str, path: str) -> str:
-    """Newest X.Y[.Z]-RCn release-candidate directory under a SourceForge path."""
-    pat = re.escape(path.rstrip("/")) + r"/(\d+(?:\.\d+)*-RC\d+)/"
-    return _scrape_max(f"https://sourceforge.net/projects/{project}/rss?path={path}",
-                       pat, f"no release-candidate versions matched under {path}",
-                       flags=re.IGNORECASE,
-                       key=lambda v: (version_tuple(v), rc_num(v)))
-
-
 def latest_atelierb(url: str) -> str:
     return _scrape_max(url, r"atelierb-free-(\d+(?:\.\d+)+)-",
                        "no atelierb-free-<version> link found")
@@ -285,6 +255,77 @@ def latest_apache_index(url: str) -> str:
     """Newest multi-component version subdirectory in an Apache/nginx autoindex."""
     return _scrape_max(url, r'href="(\d+(?:\.\d+)+)/"',
                        f"no version directories found at {url}")
+
+
+# --- eventb-rossi Rodin Bundle ---------------------------------------------
+# Release tags are v<rodin>-<YYMM>[.<n>][-rc<n>], e.g. v3.10.0-2611,
+# v3.10.0-2609.2 (a second release in one month), v3.10.0-2611-rc1. Packaged as
+# the Debian upstream version <rodin>+<YYMM>[.<n>][~rc<n>]: "+" sorts it above
+# the vanilla 3.10 it replaces, "~" sorts a candidate below its final release.
+# get-orig.sh (scripts/lib.sh:fetch_rodin_bundle) maps it back to the tag.
+#
+# clean_pv/version_tuple would truncate both forms to 3.10.0, so a 2611 -> 2612
+# release would go unnoticed; bundle_key compares the whole thing.
+RODIN_BUNDLE_REPO = "eventb-rossi/Rodin-Bundle"
+BUNDLE_TAG_RE = re.compile(r"^v(\d+(?:\.\d+)*)-(\d{4})(?:\.(\d+))?(?:-rc(\d+))?$")
+BUNDLE_DEB_RE = re.compile(r"^(\d+(?:\.\d+)*)\+(\d{4})(?:\.(\d+))?(?:~rc(\d+))?$")
+BUNDLE_LINUX_ASSET_RE = re.compile(r"^rodin-.+-rossi-linux\.gtk\.x86_64\.tar\.gz$")
+
+
+def bundle_key(version: str) -> tuple:
+    """Sort key for a bundle tag or packaged version: base, YYMM, n, rc.
+
+    A final release sorts after its candidates (rc = infinity) and before its
+    .n respins. Anything else is a vanilla Rodin version (3.10, 3.10.0~rc2),
+    which sorts below every bundle build of the same base (YYMM 0).
+    """
+    m = BUNDLE_TAG_RE.match(version) or BUNDLE_DEB_RE.match(version)
+    base, yymm, n, rc = m.groups() if m else (clean_pv(version), "0", None, None)
+    nums = tuple(int(p) for p in base.split(".")) if base else ()
+    nums += (0,) * (4 - len(nums))          # 3.10 == 3.10.0
+    return (nums, int(yymm), int(n or 0), int(rc) if rc else float("inf"))
+
+
+def bundle_deb_version(tag: str) -> str:
+    """Release tag -> Debian upstream version, e.g. v3.10.0-2611-rc1 -> 3.10.0+2611~rc1."""
+    m = BUNDLE_TAG_RE.match(tag)
+    if not m:
+        raise ValueError(f"not a Rodin Bundle release tag: {tag!r}")
+    base, yymm, n, rc = m.groups()
+    return f"{base}+{yymm}" + (f".{n}" if n else "") + (f"~rc{rc}" if rc else "")
+
+
+def bundle_tag(version: str) -> str:
+    """Debian upstream version -> release tag (inverse of bundle_deb_version)."""
+    return "v" + version.replace("+", "-", 1).replace("~rc", "-rc")
+
+
+def latest_rodin_bundle(prerelease: bool = False) -> str:
+    """Newest complete Rodin Bundle release, as a Debian upstream version.
+
+    Drafts are skipped, and so are prereleases and -rc tags unless `prerelease`.
+    A release counts only once both its Linux archive and SHA256SUMS are
+    attached: get-orig.sh resolves the archive through SHA256SUMS, which the
+    release workflow uploads last, so a release still being published is not
+    proposed yet.
+    """
+    releases = json.loads(http_get(
+        f"https://api.github.com/repos/{RODIN_BUNDLE_REPO}/releases?per_page=100",
+        headers=gh_headers()))
+    tags = []
+    for rel in releases:
+        tag = rel.get("tag_name") or ""
+        m = BUNDLE_TAG_RE.match(tag)
+        if not m or rel.get("draft"):
+            continue
+        if not prerelease and (rel.get("prerelease") or m.group(4)):
+            continue
+        names = [a.get("name") or "" for a in rel.get("assets") or []]
+        if "SHA256SUMS" in names and any(BUNDLE_LINUX_ASSET_RE.match(n) for n in names):
+            tags.append(tag)
+    if not tags:
+        raise ValueError(f"{RODIN_BUNDLE_REPO}: no complete release found")
+    return bundle_deb_version(max(tags, key=bundle_key))
 
 
 def latest_version(source: dict) -> str:
@@ -297,20 +338,18 @@ def latest_version(source: dict) -> str:
         return latest_maven(source["group"], source["artifact"])
     if t == "apache_index":
         return latest_apache_index(source["url"])
-    if t == "sourceforge":
-        return latest_sourceforge(source["project"], source["path"])
-    if t == "sourceforge_rc":
-        return latest_sourceforge_rc(source["project"], source["path"])
     if t == "atelierb":
         return latest_atelierb(source["url"])
+    if t == "rodin_bundle":
+        return latest_rodin_bundle(source.get("prerelease", False))
     raise ValueError(f"unknown source type {t!r}")
 
 
 def is_outdated(source: dict, latest: str | None, current: str | None) -> bool:
     if not (latest and current):
         return False
-    if source.get("type") == "sourceforge_rc":
-        return version_newer_rc(latest, current)
+    if source.get("type") == "rodin_bundle":
+        return bundle_key(latest) > bundle_key(current)
     return version_newer(latest, current)
 
 
@@ -344,20 +383,23 @@ def emit_outputs(**kv: str) -> None:
                 fh.write(f"{k}={v}\n")
 
 
-def bump_changelog_text(text: str, stanza: dict, new: str) -> str:
+def bump_changelog_text(text: str, stanza: dict, new: str,
+                        note: str | None = None) -> str:
     """Prepend a new `<src> (<new>-1) ...` stanza to a debian/changelog body.
 
     Reuses the existing distribution/urgency and the canonical Debian trailer
-    (one space before `--`, two spaces before the RFC 2822 date).
+    (one space before `--`, two spaces before the RFC 2822 date). `note`
+    replaces the default "Update to upstream <new>." bullet.
     """
     date = email.utils.format_datetime(datetime.datetime.now(datetime.timezone.utc))
+    bullet = note or f"Update to upstream {new}."
     # Keep any epoch the maintainer set; upstream versions never carry one, and
     # dropping it would make the new Debian version sort older than the current.
     epoch = f"{stanza['epoch']}:" if stanza.get("epoch") else ""
     entry = (
         f"{stanza['source']} ({epoch}{new}-1) {stanza['distribution']}; urgency={stanza['urgency']}\n"
         f"\n"
-        f"  * Update to upstream {new}.\n"
+        f"  * {bullet}\n"
         f"\n"
         f" -- {CHANGELOG_AUTHOR}  {date}\n"
         f"\n"
@@ -379,11 +421,17 @@ def cmd_bump(pkg_name: str) -> int:
         emit_outputs(bumped="false")
         return 0
 
+    note = None
+    if pkg["source"].get("type") == "rodin_bundle":
+        note = f"Update to Rodin Bundle {bundle_tag(latest)}."
     path = ROOT / "packages" / pkg_name / "debian" / "changelog"
-    path.write_text(bump_changelog_text(path.read_text(), stanza, latest))
+    path.write_text(bump_changelog_text(path.read_text(), stanza, latest, note))
     print(f"{pkg_name}: {current} -> {latest}")
     print(f"  rewrote {path.relative_to(ROOT)}")
-    emit_outputs(bumped="true", pn=pkg_name, old=current, new=latest)
+    # `ref` is `new` made safe for a git branch name: Debian versions may carry
+    # "~" (3.10.0+2611~rc1) or an epoch ":", neither allowed in a ref.
+    emit_outputs(bumped="true", pn=pkg_name, old=current, new=latest,
+                 ref=re.sub(r"[~:^]", "-", latest))
     return 0
 
 
