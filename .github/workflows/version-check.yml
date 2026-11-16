@@ -79,7 +79,9 @@ jobs:
           # Pull requests: write), shared across the eventb-rossi packaging repos;
           # falls back to github.token (PR still opens, just doesn't re-trigger CI).
           token: ${{ secrets.VERSION_BUMP_TOKEN || github.token }}
-          branch: version-bump/${{ steps.bump.outputs.pn }}-${{ steps.bump.outputs.new }}
+          # `ref` is the new version with characters git refuses in a branch
+          # name ("~" of a rodin-rc candidate, an epoch ":") replaced.
+          branch: version-bump/${{ steps.bump.outputs.pn }}-${{ steps.bump.outputs.ref }}
           delete-branch: true
           title: '${{ matrix.pkg }}: ${{ steps.bump.outputs.old }} → ${{ steps.bump.outputs.new }}'
           commit-message: |
