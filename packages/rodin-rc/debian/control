@@ -4,12 +4,12 @@ Priority: optional
 Maintainer: Denis Efremov <efremov@linux.com>
 Build-Depends: debhelper-compat (= 13)
 Standards-Version: 4.6.2
-Homepage: https://www.event-b.org/
+Homepage: https://github.com/eventb-rossi/Rodin-Bundle
 Rules-Requires-Root: no
 
 Package: rodin-rc
 Architecture: amd64
-Depends: default-jre | java-runtime,
+Depends: default-jre (>= 2:1.21) | java-runtime (>= 21),
          libgtk-3-0t64 | libgtk-3-0,
          hicolor-icon-theme,
          ${misc:Depends}
@@ -23,7 +23,9 @@ Description: Eclipse-based IDE for Event-B (release candidate)
  generation and discharge of proof obligations, and is extensible through a wide
  range of plug-ins.
  .
- This package provides a pre-release (release candidate) build of Rodin and is a
- drop-in replacement for the stable "rodin" package, with which it conflicts. A
- Java runtime is required; webkit2gtk is recommended for the browser-backed
- views.
+ This package tracks the newest eventb-rossi Rodin Bundle, release candidates
+ included: Rodin 3.10 with parallel automatic proving, the SMT solvers, the ProB
+ animator and disprover, the Proof Obligation Cleaner and the Rossi bridge. It
+ is a drop-in replacement for the stable "rodin" package, with which it
+ conflicts. It needs a Java 21 or newer runtime; webkit2gtk is recommended for
+ the browser-backed views.
