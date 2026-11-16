@@ -17,6 +17,20 @@ override_dh_auto_install:
 	grep -q 'org.eclipse.e4.ui.css.swt.theme' debian/rodin-rc/usr/lib/rodin/rodin.ini || \
 	    printf '%s\n' '-Dorg.eclipse.e4.ui.css.swt.theme=org.eclipse.e4.ui.css.theme.e4_default' \
 	        >> debian/rodin-rc/usr/lib/rodin/rodin.ini
+	# ProB's probcli.sh launcher chmods probcli and send_user_interrupt a+x
+	# under set -e.  In this root-owned install that chmod fails for every
+	# other user -- even though dh_fixperms below already sets the bits, they
+	# do not own the files -- so ProB never starts.  Make the chmod
+	# best-effort, and fail the build if upstream changed the script and the
+	# patch no longer applies.
+	set -e; for f in debian/rodin-rc/usr/lib/rodin/plugins/de.prob.core_*/prob/linux64/probcli.sh; do \
+	    test -f "$$f" || { echo "ProB's probcli.sh not found" >&2; exit 1; }; \
+	    sed -i -e '/^[[:space:]]*chmod a+x /s|$$| 2>/dev/null \|\| :|' "$$f"; \
+	    grep -q 'chmod a+x .* || :$$' "$$f" || { echo "probcli.sh patch did not apply" >&2; exit 1; }; \
+	    if grep -E '^[[:space:]]*chmod a+x ' "$$f" | grep -qv ' || :$$'; then \
+	        echo "unpatched chmod left in $$f" >&2; exit 1; \
+	    fi; \
+	done
 	install -D -m0755 debian/rodin.wrapper debian/rodin-rc/usr/bin/rodin
 	install -D -m0644 icon.xpm debian/rodin-rc/usr/share/pixmaps/rodin.xpm
 	install -D -m0644 debian/rodin.desktop \

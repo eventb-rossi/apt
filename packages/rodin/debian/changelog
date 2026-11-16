@@ -6,6 +6,10 @@ rodin (3.10.0+2611-1) noble; urgency=medium
     the Rossi bridge, instead of the vanilla SourceForge build.
   * The upstream version encodes the bundle tag: <rodin>+<YYMM>[.<n>][~rc<n>].
   * Require a Java 21 runtime, as the bundle does.
+  * Make the chmod in ProB's probcli.sh best-effort: in this root-owned
+    install it failed for every other user under set -e, so ProB never
+    started. Depend on the system libraries ProB's binaries link against
+    (libgmp10, libuuid1, libstdc++6, libgcc-s1, libc6); dh_shlibdeps is off.
 
  -- Denis Efremov <efremov@linux.com>  Mon, 16 Nov 2026 13:33:37 +0000
 
