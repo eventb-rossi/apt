@@ -5,16 +5,5 @@ set -euo pipefail
 : "${ROOT:?}" "${PKG:?}" "${UVER:?}" "${ORIG:?}" "${DOWNLOADS:?}"
 source "$ROOT/scripts/lib.sh"
 
-# ${UVER} names the release tag; the build qualifier in the asset name is
-# resolved (and the download verified) through the release's SHA256SUMS.
-f="$(fetch_rodin_bundle)"
-
-work=$(mktemp -d)
-tar --warning=no-unknown-keyword -C "$work" -xzf "$f"   # extracts top-level "rodin"
-
-d="$ROOT/build/${PKG}-${UVER}"
-rm -rf "$d"
-mv "$work/rodin" "$d"
-rm -rf "$work"
-
+fetch_rodin_bundle
 pack_orig

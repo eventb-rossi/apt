@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import datetime
 import email.utils
+import functools
 import json
 import os
 import re
@@ -130,21 +131,15 @@ def version_tuple(s: str) -> tuple[int, ...]:
     return tuple(int(p) for p in m.group(0).split(".")) if m else ()
 
 
-def _padded_pair(latest: str, current: str) -> tuple[tuple[int, ...], tuple[int, ...]]:
-    """Both versions as numeric tuples zero-padded to equal length.
+def version_newer(latest: str, current: str) -> bool:
+    """True if `latest` is a newer release than `current` (suffixes ignored).
 
-    Padding means a shorter string isn't treated as older than its own
-    longer-but-equal form (3.10 == 3.10.0, while 3.10 > 3.9.0).
+    Both are zero-padded to equal length, so a shorter string isn't treated as
+    older than its own longer-but-equal form (3.10 == 3.10.0, while 3.10 > 3.9.0).
     """
     a, b = version_tuple(latest), version_tuple(current)
     n = max(len(a), len(b))
-    return a + (0,) * (n - len(a)), b + (0,) * (n - len(b))
-
-
-def version_newer(latest: str, current: str) -> bool:
-    """True if `latest` is a newer release than `current` (suffixes ignored)."""
-    a, b = _padded_pair(latest, current)
-    return a > b
+    return a + (0,) * (n - len(a)) > b + (0,) * (n - len(b))
 
 
 def clean_pv(tag: str) -> str:
@@ -233,17 +228,16 @@ def latest_maven(group: str, artifact: str) -> str:
     return max(versions, key=version_tuple)
 
 
-def _scrape_max(url: str, pattern: str, what: str, *, flags: int = 0,
-                key=version_tuple) -> str:
-    """Fetch `url`, regex-`findall` version strings, return the newest by `key`.
+def _scrape_max(url: str, pattern: str, what: str) -> str:
+    """Fetch `url`, regex-`findall` version strings, return the newest.
 
     Raises ValueError(`what`) when the page matched nothing.
     """
     page = http_get(url).decode("utf-8", "replace")
-    versions = re.findall(pattern, page, flags)
+    versions = re.findall(pattern, page)
     if not versions:
         raise ValueError(what)
-    return max(versions, key=key)
+    return max(versions, key=version_tuple)
 
 
 def latest_atelierb(url: str) -> str:
@@ -272,25 +266,29 @@ BUNDLE_DEB_RE = re.compile(r"^(\d+(?:\.\d+)*)\+(\d{4})(?:\.(\d+))?(?:~rc(\d+))?$
 BUNDLE_LINUX_ASSET_RE = re.compile(r"^rodin-.+-rossi-linux\.gtk\.x86_64\.tar\.gz$")
 
 
-def bundle_key(version: str) -> tuple:
-    """Sort key for a bundle tag or packaged version: base, YYMM, n, rc.
+def _bundle_key(base: str, yymm: str, n: str | None, rc: str | None) -> tuple:
+    """Sort key from the parts of a tag or version: base, YYMM, n, rc.
 
-    A final release sorts after its candidates (rc = infinity) and before its
-    .n respins. Anything else is a vanilla Rodin version (3.10, 3.10.0~rc2),
-    which sorts below every bundle build of the same base (YYMM 0).
+    The base is zero-padded (3.10 == 3.10.0). A final release sorts after its
+    candidates (rc = infinity) and before its .n respins.
     """
-    m = BUNDLE_TAG_RE.match(version) or BUNDLE_DEB_RE.match(version)
-    base, yymm, n, rc = m.groups() if m else (clean_pv(version), "0", None, None)
-    nums = tuple(int(p) for p in base.split(".")) if base else ()
-    nums += (0,) * (4 - len(nums))          # 3.10 == 3.10.0
-    return (nums, int(yymm), int(n or 0), int(rc) if rc else float("inf"))
+    nums = version_tuple(base)
+    return (nums + (0,) * (4 - len(nums)), int(yymm), int(n or 0),
+            int(rc) if rc else float("inf"))
 
 
-def bundle_deb_version(tag: str) -> str:
-    """Release tag -> Debian upstream version, e.g. v3.10.0-2611-rc1 -> 3.10.0+2611~rc1."""
-    m = BUNDLE_TAG_RE.match(tag)
-    if not m:
-        raise ValueError(f"not a Rodin Bundle release tag: {tag!r}")
+def bundle_key(version: str) -> tuple:
+    """Sort key of a packaged version, <rodin>+<YYMM>[.<n>][~rc<n>].
+
+    Anything else is a vanilla Rodin version (3.10, 3.10.0~rc2), which sorts
+    below every bundle build of the same base.
+    """
+    m = BUNDLE_DEB_RE.match(version)
+    return _bundle_key(*m.groups()) if m else _bundle_key(version, "0", None, None)
+
+
+def bundle_deb_version(m: re.Match) -> str:
+    """BUNDLE_TAG_RE match -> Debian upstream version (v3.10.0-2611-rc1 -> 3.10.0+2611~rc1)."""
     base, yymm, n, rc = m.groups()
     return f"{base}+{yymm}" + (f".{n}" if n else "") + (f"~rc{rc}" if rc else "")
 
@@ -298,6 +296,14 @@ def bundle_deb_version(tag: str) -> str:
 def bundle_tag(version: str) -> str:
     """Debian upstream version -> release tag (inverse of bundle_deb_version)."""
     return "v" + version.replace("+", "-", 1).replace("~rc", "-rc")
+
+
+@functools.lru_cache(maxsize=None)
+def bundle_releases() -> tuple:
+    """The Rodin-Bundle releases list, fetched once per run (rodin and rodin-rc share it)."""
+    return tuple(json.loads(http_get(
+        f"https://api.github.com/repos/{RODIN_BUNDLE_REPO}/releases?per_page=100",
+        headers=gh_headers())))
 
 
 def latest_rodin_bundle(prerelease: bool = False) -> str:
@@ -309,23 +315,19 @@ def latest_rodin_bundle(prerelease: bool = False) -> str:
     release workflow uploads last, so a release still being published is not
     proposed yet.
     """
-    releases = json.loads(http_get(
-        f"https://api.github.com/repos/{RODIN_BUNDLE_REPO}/releases?per_page=100",
-        headers=gh_headers()))
-    tags = []
-    for rel in releases:
-        tag = rel.get("tag_name") or ""
-        m = BUNDLE_TAG_RE.match(tag)
+    candidates = []
+    for rel in bundle_releases():
+        m = BUNDLE_TAG_RE.match(rel.get("tag_name") or "")
         if not m or rel.get("draft"):
             continue
         if not prerelease and (rel.get("prerelease") or m.group(4)):
             continue
         names = [a.get("name") or "" for a in rel.get("assets") or []]
         if "SHA256SUMS" in names and any(BUNDLE_LINUX_ASSET_RE.match(n) for n in names):
-            tags.append(tag)
-    if not tags:
+            candidates.append((_bundle_key(*m.groups()), bundle_deb_version(m)))
+    if not candidates:
         raise ValueError(f"{RODIN_BUNDLE_REPO}: no complete release found")
-    return bundle_deb_version(max(tags, key=bundle_key))
+    return max(candidates)[1]
 
 
 def latest_version(source: dict) -> str:
@@ -429,9 +431,9 @@ def cmd_bump(pkg_name: str) -> int:
     print(f"{pkg_name}: {current} -> {latest}")
     print(f"  rewrote {path.relative_to(ROOT)}")
     # `ref` is `new` made safe for a git branch name: Debian versions may carry
-    # "~" (3.10.0+2611~rc1) or an epoch ":", neither allowed in a ref.
+    # "~" (3.10.0+2611~rc1), which a ref may not contain.
     emit_outputs(bumped="true", pn=pkg_name, old=current, new=latest,
-                 ref=re.sub(r"[~:^]", "-", latest))
+                 ref=re.sub(r"[^0-9A-Za-z._+-]", "-", latest))
     return 0
 
 
